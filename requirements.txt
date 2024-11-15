@@ -3,3 +3,4 @@ groq
 prompt_toolkit
 psycopg2-binary
 Flask
+flask-socketio
