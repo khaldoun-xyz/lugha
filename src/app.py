@@ -1,21 +1,16 @@
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
-import psycopg2
 from dotenv import load_dotenv
 from groq import Groq
-from chat import log_conversation_to_db
-from evaluate import evaluate_last_conversation,get_last_conversation
-
-
+from chat import log_conversation_to_db, create_db_connection
+from evaluate import evaluate_last_conversation,get_last_conversation, format_duration
 
 load_dotenv()
 
 app = Flask(__name__, template_folder='templates')
 socketio = SocketIO(app)
-
-
 
 # Load environment variables
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -45,7 +40,7 @@ def chat():
             'interaction_count': 0
         }
 
-    # Append user message to history
+    # Append user message to history and increment interaction count
     conversations[username]['history'].append({'role': 'user', 'content': user_message})
     conversations[username]['interaction_count'] += 1
 
@@ -64,27 +59,19 @@ def chat():
         conversations[username]['history'].append({'role': 'assistant', 'content': response})
 
         # Log the conversation to the database
-        start_time = conversations[username]['start_time']
-        end_time = datetime.now()  # Set end time for each interaction
-        log_conversation_to_db(username, user_message, response, start_time, end_time, conversations[username]['interaction_count'])
+        log_conversation_to_db(
+            username,
+            user_message,
+            response,
+            conversations[username]['start_time'],
+            datetime.now(),  # End time
+            conversations[username]['interaction_count']
+        )
 
         return jsonify({'response': response})
     except Exception as e:
         return jsonify({'error': str(e)})
 
-def format_duration(seconds):
-    """Format the duration from seconds to a human-readable format."""
-    if seconds < 60:
-        return f"{int(seconds)} seconds"
-    elif seconds < 3600:
-        minutes = int(seconds // 60)
-        seconds = int(seconds % 60)
-        return f"{minutes:02}:{seconds:02}"
-    else:
-        hours = int(seconds // 3600)
-        minutes = int((seconds % 3600) // 60)
-        seconds = int(seconds % 60)
-        return f"{hours:02}:{minutes:02}:{seconds:02}"
 @app.route('/end-conversation', methods=['POST'])
 def end_conversation():
     username = request.json['username']
@@ -92,31 +79,23 @@ def end_conversation():
     if username not in conversations:
         return jsonify({'error': 'No active conversation found.'}), 404
 
-    # Calculate duration
+    # Calculate end time and duration
     end_time = datetime.now()
     start_time = conversations[username]['start_time']
-    duration = (end_time - start_time).total_seconds()
-
-    formatted_duration = format_duration(duration)
     interaction_count = conversations[username]['interaction_count']
-    language = request.json.get('language')
-    conversation_history, _, _ = get_last_conversation(username)
+    duration = end_time - start_time
 
-    if not conversation_history:
-        return jsonify({'error': 'No conversation history available for evaluation.'}), 400
-    evaluation, _, _ = evaluate_last_conversation(username, language)
     log_conversation_to_db(username, '', '', start_time, end_time, interaction_count)
-
+    language = request.json.get('language')
+    evaluation, _, _ = evaluate_last_conversation(username, language)
     # Clear conversation state
     del conversations[username]
 
-    response_data = {
+    return jsonify({
         'interaction_count': interaction_count,
-        'total_duration': formatted_duration,
+        'total_duration': format_duration(duration),
         'evaluation': evaluation
-    }
-    
-    return jsonify(response_data)
+    })
 
 @app.route('/evaluate', methods=['POST'])
 def evaluate():
@@ -129,68 +108,44 @@ def evaluate():
 
     username = data['username']
     language = data['language']
-    start_time = data['start_time']
-    end_time = data['end_time']
-    print(f"Received evaluation request: {data}")
-    conversation_history = get_last_conversation(username, start_time, end_time)
+    conversation_history, _, _ = get_last_conversation(username)
 
     if not conversation_history:
         return jsonify({'error': 'No conversation history available for evaluation.'}), 400
 
     evaluation = evaluate_last_conversation(conversation_history, language)
-    return jsonify({'evaluation': evaluation})
+    return jsonify ({'evaluation': evaluation})
 
 @app.route('/track_progress')
 def track_progress():
     return render_template('track_progress.html')
 
-
-@app.route('/track_progress')
-def get_track_progress():
-    username = request.json['username']
-    try:
-        conn = psycopg2.connect(
-            dbname=POSTGRES_DB,
-            user=POSTGRES_USER,
-            password=POSTGRES_PW,
-            host=POSTGRES_HOST,
-            port=POSTGRES_PORT,
-        )
-        with conn.cursor() as cursor:
-            cursor.execute(
-            "SELECT * FROM conversations ORDER BY created_at DESCWHERE username = %s",
-                    (username,)
-                )
-            progress = cursor.fetchall()
-    finally:
-        if conn:
-            conn.close()
-    return jsonify([dict(row) for row in progress])
-
 @app.route('/fetch-progress', methods=['POST'])
 def fetch_progress():
     username = request.json['username']
     try:
-        conn = psycopg2.connect(
-            dbname=POSTGRES_DB,
-            user=POSTGRES_USER,
-            password=POSTGRES_PW,
-            host=POSTGRES_HOST,
-            port=POSTGRES_PORT,
-        )
+        conn = create_db_connection()
         with conn.cursor() as cursor:
             cursor.execute(
-                "SELECT duration, interaction_count, evaluation FROM conversations WHERE username = %s",
+                "SELECT duration, interaction_count, evaluation FROM conversations WHERE username = %s AND evaluation IS NOT NULL",
                 (username,)
             )
             progress = cursor.fetchall()
-            result = [{'duration': row[0], 'interaction_count': row[1], 'evaluation':row[2]} for row in progress]
+            result = []
+            for row in progress:
+                duration = row[0]  # This should be a timedelta object
+                formatted_duration = format_duration(duration)  # Use your existing formatting function
+
+                result.append({
+                    'duration': formatted_duration,  # Use the formatted duration
+                    'interaction_count': row[1],
+                    'evaluation': row[2]
+                })
     except Exception as e:
         print(f"Error fetching progress data: {e}")
         return jsonify({'error': 'Failed to fetch progress data'}), 500
     finally:
-        if conn:
-            conn.close()
+        conn.close()
 
     return jsonify({'progress': result})
 

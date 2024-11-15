@@ -19,78 +19,60 @@ MODEL = os.getenv("MODEL")
 # Initialize Groq client
 client = Groq(api_key=GROQ_API_KEY)
 
-def get_last_conversation(username):
-    conn = None
-    last_conversation = []
-    interaction_count = 0
-    duration = None
-    start_time = None
-    end_time = None
-
-    try:
-        conn = psycopg2.connect(
-            dbname=POSTGRES_DB,
-            user=POSTGRES_USER,
-            password=POSTGRES_PW,
-            host=POSTGRES_HOST,
-            port=POSTGRES_PORT,
-        )
+def fetch_last_conversation_times(username):
+    """Fetch the start and end times of the last conversation."""
+    query = """
+        SELECT start_time, end_time 
+        FROM conversations 
+        WHERE username = %s 
+        AND start_time IS NOT NULL 
+        AND end_time IS NOT NULL 
+        ORDER BY created_at DESC 
+        LIMIT 1
+    """
+    with create_db_connection() as conn:
         with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT start_time, end_time 
-                FROM conversations 
-                WHERE username = %s 
-                AND start_time IS NOT NULL 
-                AND end_time IS NOT NULL 
-                ORDER BY created_at DESC 
-                LIMIT 1
-                """, 
-                (username,)
-            )
-            session_times = cursor.fetchone()
+            cursor.execute(query, (username,))
+            return cursor.fetchone()
 
-            if session_times:
-                start_time, end_time = session_times
-                cursor.execute(
-                    """
-                    SELECT prompt, response, interaction_count 
-                    FROM conversations WHERE username = %s 
-                    AND start_time >= %s 
-                    AND end_time <= %s 
-                    ORDER BY created_at ASC
-                    """, 
-                    (username, start_time, end_time)
-                )
-                results = cursor.fetchall()
-                
-                if results:
-                    for row in results:
-                        prompt, response, interaction_count = row
-                        last_conversation.append(f"You: {prompt}\nGroq LLM: {response}\n")
-                    
-                    if start_time and end_time:
-                        duration = end_time - start_time
-                    else:
-                        print(f"Start time or end time is missing for user: {username}")
-                else:
-                    print(f"No conversations found for the last evaluation session of username: {username}")
-            else:
-                print(f"No evaluation sessions found for username: {username}")
+def fetch_last_conversation(username, start_time, end_time):
+    """Fetch the last conversation details based on the times."""
+    query = """
+        SELECT prompt, response, interaction_count 
+        FROM conversations 
+        WHERE username = %s 
+        AND start_time >= %s 
+        AND end_time <= %s 
+        ORDER BY created_at ASC
+    """
+    with create_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(query, (username, start_time, end_time))
+            return cursor.fetchall()
 
-    except Exception as e:
-        print(f"Error retrieving last conversation: {e}")
-    finally:
-        if conn:
-            conn.close()
+def get_last_conversation(username):
+    """Get the last conversation details for a user."""
+    session_times = fetch_last_conversation_times(username)
     
-    return "\n".join(last_conversation), interaction_count, duration
+    if session_times:
+        start_time, end_time = session_times
+        results = fetch_last_conversation(username, start_time, end_time)
+        
+        last_conversation = [
+            f"You: {prompt}\nGroq LLM: {response}\n" for prompt, response, _ in results
+        ]
+        
+        duration = end_time - start_time if start_time and end_time else None
+        interaction_count = results[-1][2] if results else 0
+        
+        return "\n".join(last_conversation), interaction_count, duration
+
+    print(f"No evaluation sessions found for username: {username}")
+    return [], 0, None
 
 def log_evaluation_to_db(username, evaluation, start_time, end_time):
+    """Log the evaluation result into the database."""
     conn = create_db_connection()
-    if conn is None:
-        print("Could not connect to database.")
-        return
     try:
         with conn.cursor() as cursor:
             cursor.execute(
@@ -104,10 +86,20 @@ def log_evaluation_to_db(username, evaluation, start_time, end_time):
             conn.commit()
     except Exception as e:
         print(f"Error logging evaluation: {e}")
-    finally:
-        conn.close()
+
+def format_duration(duration):
+    """Format the duration into a human-readable string."""
+    if duration is None:
+        return "Duration data not available."
+    
+    total_seconds = int(duration.total_seconds())
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    return f"{hours:02}:{minutes:02}:{seconds:02}" if hours > 0 else f"{minutes:02}:{seconds:02}" if minutes > 0 else f"{seconds}s"
 
 def evaluate_last_conversation(username, language):
+    """Evaluate the last conversation for a user."""
     last_conversation, interaction_count, duration = get_last_conversation(username)
 
     if duration is None:
@@ -125,69 +117,21 @@ def evaluate_last_conversation(username, language):
     try:
         chat_completion = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "You are an expert language evaluator."},
+                {"role": "system", "content": "You are an expert language evaluator ."},
                 {"role": "user", "content": prompt},
             ],
             model=MODEL,
         )
-        response = chat_completion.choices[0].message.content
+        response = chat_completion.choices[0].message.content.strip()
         
         # Log the evaluation to the database
         if last_conversation:
-            start_time, end_time = get_last_conversation_times(username)
-            log_evaluation_to_db(username, response.strip(), start_time, end_time)
+            start_time, end_time = fetch_last_conversation_times(username)
+            log_evaluation_to_db(username, response, start_time, end_time)
         
-        return response.strip(), interaction_count, formatted_duration
+        return response, interaction_count, formatted_duration
     except Exception as e:
         return f"Error during LLM evaluation: {e}", interaction_count, duration
-
-def get_last_conversation_times(username):
-    conn = None
-    start_time = None
-    end_time = None
-
-    try:
-        conn = psycopg2.connect(
-            dbname=POSTGRES_DB,
-            user=POSTGRES_USER,
-            password=POSTGRES_PW,
-            host=POSTGRES_HOST,
-            port=POSTGRES_PORT,
-        )
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT start_time, end_time 
-                FROM conversations 
-                WHERE username = %s 
-                AND start_time IS NOT NULL 
-                AND end_time IS NOT NULL 
-                ORDER BY created_at DESC 
-                LIMIT 1
-                """, 
-                (username,)
-            )
-            session_times = cursor.fetchone()
-            if session_times:
-                start_time, end_time = session_times
-    except Exception as e:
-        print(f"Error retrieving last conversation times: {e}")
-    finally:
-        if conn:
-            conn.close()
-    
-    return start_time, end_time
-
-def format_duration(duration):
-    if duration is None:
-        return "Duration data not available."
-    
-    total_seconds = int(duration.total_seconds())
-    
-    hours, remainder = divmod(total_seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
-
-    return f"{hours:02}:{minutes:02}:{seconds:02}" if hours > 0 else f"{minutes:02}:{seconds:02}" if minutes > 0 else f"{seconds}s"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

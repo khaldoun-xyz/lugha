@@ -19,11 +19,7 @@
     <div class="container">
         <h1 class="mt-5">Track Your Progress</h1>
         <div id="progress-container"></div>
-        <button id="start-conversation" class="btn btn-primary mt-4">Start Conversation</button>
         <a href="/" class="btn btn-secondary mt-4">Back to Home</a>
-
-        <button class="btn btn-info mt-4" data-toggle="modal" data-target="#duration Modal">View Monthly Duration</button>
-        <button class="btn btn-warning mt-4" data-toggle="modal" data-target="#interactionModal">View Monthly Interactions</button>
 
         <!-- Duration Modal -->
         <div class="modal fade" id="durationModal" tabindex="-1" role="dialog" aria-labelledby="durationModalLabel" aria-hidden="true">
@@ -35,40 +31,47 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                   
-    </div>
+                </div>
+            </div>
+        </div>
 
-    <script>
-        $(document).ready(function() {
-            const username = localStorage.getItem('username'); // Store username in localStorage for easy access
-
-            // Fetch progress data from the server
-            $.ajax({
-                url: '/fetch-progress',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ username: username }),
-                success: function(data) {
-                    if (data.progress) {
-                        data.progress.forEach(item => {
-                            $('#progress-container').append(`
-                                <div class="progress-item">
-                                    <strong>Duration:</strong> ${item.duration} seconds<br>
-                                    <strong>Interactions:</strong> ${item.interaction_count}<br>
-                                    <strong>Evaluation:</strong> ${item.evaluation}
-                                </div>
-                            `);
-                        });
-                    } else {
-                        $('#progress-container').append('<p>No progress data available.</p>');
+        <script>
+            $(document).ready(function() {
+                const username = localStorage.getItem('username'); // Store username in localStorage for easy access
+        
+                // Fetch progress data from the server
+                $.ajax({
+                    url: '/fetch-progress',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ username: username }),
+                    success: function(data) {
+                        if (data.progress) {
+                            data.progress.forEach(item => {
+                                // Format the evaluation text
+                                const formattedEvaluation = item.evaluation
+                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+                                    .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italics
+                                    .replace(/\n/g, '<br>'); // Replace newlines with <br>
+        
+                                $('#progress-container').append(`
+                                    <div class="progress-item">
+                                        <strong>Duration:</strong> ${item.duration}<br>
+                                        <strong>Interactions:</strong> ${item.interaction_count}<br>
+                                        <strong>Evaluation:</strong> ${formattedEvaluation}
+                                    </div>
+                                `);
+                            });
+                        } else {
+                            $('#progress-container').append('<p>No progress data available.</p>');
+                        }
+                    },
+                    error: function(err) {
+                        console.error(err);
+                        alert('Error fetching progress data. Please try again.');
                     }
-                },
-                error: function(err) {
-                    console.error(err);
-                    alert('Error fetching progress data. Please try again.');
-                }
+                });
             });
-        });
-    </script>
+        </script>
 </body>
 </html>

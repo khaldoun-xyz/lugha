@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
+        html, body {
+            min-height: calc(100vh + 5cm); /* Ensures the page is at least 5cm longer than the viewport height */
+        }
         #chat-box {
             max-height: 300px;
             overflow-y: auto;
@@ -18,6 +21,13 @@
             border-top: 1px solid #ccc;
             padding-top: 10px;
             margin-top: 10px;
+        }
+        #loading-indicator {
+            display: none;
+            margin-top: 10px;
+        }
+        #footer {
+            display: none;
         }
     </style>
 </head>
@@ -51,24 +61,24 @@
 
         <div id="evaluation-message" class="mt-4" style="display:none;"></div>
         <div id="evaluation-result" class="mt-4" style="display:none;"></div>
+        <div id="footer" class="mt-5" style="display:none;">
+            <hr style="border-color: #d3d3d3; margin: 1;"/>
+        </div>
+        <div id="loading-indicator" class="text-center">
+            <strong>Loading...</strong>
+        </div>
     </div>
 
     <script>
         $(document).ready(function() {
             let username;
             let language;
-            let startTime;
-            let endTime;
-            let interactionCount = 0;
 
             $('#start-evaluation').click(function() {
                 username = $('#username').val();
                 language = $('#language').val();
                 if (username && language) {
-                    localStorage.setItem('username', username);
                     $('#chat-interface').show();
-                    startTime = new Date();
-                    $('#chat-box').append('<div>Conversation started at: ' + startTime.toLocaleString() + '</div>');
                     $('#start-evaluation').prop('disabled', true);
                     $('#user-message').prop('disabled', false);
                 } else {
@@ -81,7 +91,10 @@
                 if (message) {
                     $('#chat-box').append(`<div><strong>${username}:</strong> ${message}</div>`);
                     $('#user-message').val('');
-                    interactionCount++;
+                    
+                    // Scroll to the bottom of the chat box
+                    $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);
+
                     $.ajax({
                         url: '/chat',
                         method: 'POST',
@@ -90,8 +103,11 @@
                         success: function(data) {
                             if (data.response) {
                                 $('#chat-box').append('<div><strong>Groq LLM:</strong> ' + data.response + '</div>');
+                                
+                                // Scroll to the bottom of the chat box
+                                $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);
                             }
-},
+                        },
                         error: function(err) {
                             console.error(err);
                             alert('Error sending message. Please try again.');
@@ -108,25 +124,24 @@
             });
 
             $('#end-conversation').click(function() {
-                endTime = new Date();
-                $('#chat-box').append('<div>Conversation ended at: ' + endTime.toLocaleString() + '</div>');
+                $('#loading-indicator').show();
                 $.ajax({
                     url: '/end-conversation',
                     method: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ 
-                        username: username,
-                        language: language 
-                    }),
+                    data: JSON.stringify({ username, language }),
                     success: function(data) {
-                        $('#evaluation-message').text('You can receive an evaluation for the conversation that lasted ' + data.total_duration + ' and included ' + data.interaction_count + ' interactions.').show();
-                        
+                        $('#loading-indicator').hide(); // Hide loading indicator
+                        $('#evaluation-message').text(`You interacted ${data.interaction_count} times over a duration of ${data.total_duration} seconds.`).show();
+                        // Here, you can also show a message that the evaluation is being processed
                         if (data.evaluation) {
                             $('#evaluation-result').html('<strong>Evaluation Result:</strong><br>' + data.evaluation.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>'));
                             $('#evaluation-result').show();
+                            $('#footer').show(); 
                         }
                     },
                     error: function(err) {
+                        $('#loading-indicator').hide(); // Hide loading indicator
                         console.error(err);
                         alert('Error ending conversation. Please try again.');
                     }
@@ -141,6 +156,7 @@
                 $('#chat-box').empty();
                 $('#evaluation-message').hide();
                 $('#evaluation-result').hide();
+                $('#footer').hide(); 
                 $('#restart-conversation').hide();
                 $('#user-message').prop('disabled', false);
                 $('#end-conversation').prop('disabled', false);
@@ -156,4 +172,4 @@
         });
     </script>
 </body>
-</html> 
+</html>

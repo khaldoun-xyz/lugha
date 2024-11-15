@@ -23,30 +23,30 @@ POSTGRES_PORT = os.getenv("POSTGRES_PORT")
 client = Groq(api_key=GROQ_API_KEY)
 
 def create_db_connection():
+    """Create a database connection."""
     try:
-        conn = psycopg2.connect(
+        return psycopg2.connect(
             dbname=POSTGRES_DB,
             user=POSTGRES_USER,
             password=POSTGRES_PW,
             host=POSTGRES_HOST,
             port=POSTGRES_PORT,
         )
-        return conn
     except Exception as e:
         print(f"Error connecting to database: {e}")
         return None
 
 def log_conversation_to_db(username, prompt, response, start_time, end_time, interaction_count):
+    if start_time is None or end_time is None:
+        print(f"Start time or end time is None for user: {username}. Cannot log conversation.")
+        return
+
+    duration = end_time - start_time
     conn = create_db_connection()
     if conn is None:
-        print("Could not connect to database.")
         return
+
     try:
-        if start_time is None or end_time is None:
-            print(f"Start time or end time is None for user: {username}. Cannot log conversation.")
-            return
-        
-        duration = end_time - start_time
         with conn.cursor() as cursor:
             cursor.execute(
                 """
@@ -63,12 +63,12 @@ def log_conversation_to_db(username, prompt, response, start_time, end_time, int
 
 def get_groq_response(conversation_history):
     try:
-        response = groq_llm_api_call(conversation_history)
-        return response.strip()
+        return groq_llm_api_call(conversation_history).strip()
     except Exception as e:
         return f"Error: {e}"
 
 def groq_llm_api_call(conversation_history):
+    """Call the Groq LLM API."""
     chat_completion = client.chat.completions.create(
         messages=conversation_history,
         model=MODEL,
@@ -76,6 +76,7 @@ def groq_llm_api_call(conversation_history):
     return chat_completion.choices[0].message.content
 
 def chat_with_groq_llm(username):
+    """Main chat loop with Groq LLM."""
     session = PromptSession(history=InMemoryHistory())
     style = Style.from_dict(
         {
@@ -94,9 +95,9 @@ def chat_with_groq_llm(username):
     interaction_count = 0
     logging_enabled = False
     start_time = None
-    end_time = None
 
     print("Welcome to Groq LLM Chat! Type 'exit' to quit, 'start evaluation' to begin logging, or 'stop evaluation' to stop logging.\n")
+    
     while True:
         try:
             prompt = session.prompt("You: ")
@@ -112,20 +113,18 @@ def chat_with_groq_llm(username):
                 print("Evaluation logging started.")
                 continue
             elif prompt.lower() == "stop evaluation":
-                if logging_enabled:  
-                    end_time = datetime.now()  
-                    logging_enabled = False  
-                    print("Evaluation logging stopped.")  
-                continue  
+                logging_enabled = False
+                print("Evaluation logging stopped.")
+                continue
 
             conversation_history.append({"role": "user", "content": prompt})  
             response = get_groq_response(conversation_history)  
-            print(f"\033[92mGroq LLM: {response}\033[0m\n")  
+            print(f"\033[92mGroq LLM : {response}\033[0m\n")  
 
             interaction_count += 1  
 
             if logging_enabled:  
-                end_time = datetime.now()  # Update end_time for each interaction during logging  
+                end_time = datetime.now()  
                 log_conversation_to_db(username, prompt, response, start_time, end_time, interaction_count)  
 
             conversation_history.append({"role": "assistant", "content": response})  
