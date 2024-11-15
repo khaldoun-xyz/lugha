@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combined Chat Interface</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        #chat-box { 
+            max-height: 300px; 
+            overflow-y: auto; 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            margin-bottom: 10px; 
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="mt-5">Chat Interface</h1>
+    
+    <!-- Initial User Input Section -->
+    <div id="user-input-section">
+        <div class="form-group">
+            <label for="username">Enter your name:</label>
+            <input type="text" class="form-control" id="username" placeholder="Your Name" required>
+        </div>
+        <div class="form-group">
+            <label for="language">Preferred Language:</label>
+            <select class="form-control" id="language">
+                <option value="english">English</option>
+                <option value="french">French</option>
+                <option value="german">German</option>
+            </select>
+        </div>
+        <button id="start-chat" class="btn btn-primary">Start Chat</button>
+    </div>
+    
+    <!-- Chat Interface Section -->
+    <div id="chat-interface" class="mt-4" style="display:none;">
+        <h3>Chat</h3>
+        <div id="chat-box"></div>
+        <input type="text" id="user-message" class="form-control" placeholder="Type your message..." required>
+        <button id="end-chat" class="btn btn-danger mt-2">End Chat</button>
+        <button id="evaluate" class="btn btn-success mt-2">Evaluate</button>
+    </div>
+    <div id="evaluation-result" class="mt-4" style="display:none;">
+        <strong>Evaluation Result:</strong><br>
+        <div id="evaluation-content"></div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        let username;
+        let language;
+
+        $('#start-chat').click(function() {
+            username = $('#username').val();
+            language = $('#language').val();
+            if (username && language) {
+                $('#user-input-section').hide();
+                $('#chat-interface').show();
+                $('#chat-box').append('<div>Chat started. You can type your message below.</div>');
+            } else {
+                alert('Please enter your name and select a language.');
+            }
+        });
+
+        $('#user-message').keypress(function(e) {
+            if (e.which === 13) { // Enter key pressed
+                const message = $('#user-message').val();
+                if (message) {
+                    $('#chat-box').append(`<div><strong>${username}:</strong> ${message}</div>`);
+                    $('#user-message').val('');
+                    $.ajax({
+                        type: 'POST',
+                        url: '/chat',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ username, message, language }),
+                        success: function(response) {
+                            $('#chat-box').append(`<div><strong>Bot:</strong> ${response.response}</div>`);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error:', error);
+                            $('#chat-box').append('<div><strong>Error:</strong> Failed to get response from LLM.</div>');
+                        }
+                    });
+                }
+            }
+        });
+
+        $('#end-chat').click(function() {
+            $.post('/end-chat', JSON.stringify({ username }), function(response) {
+                $('#chat-box').append('<div>Chat ended.</div>');
+            }, 'json');
+        });
+
+        $('#evaluate').click(function() {
+            $.ajax({
+                type: 'POST',
+                url: '/evaluate',
+                contentType: 'application/json',
+                data: JSON.stringify({ username, language }),
+                success: function(response) {
+                    if (response.evaluation) {
+                        $('#evaluation-content').html(response.evaluation.replace(/\n/g, '<br>'));
+                        $('#evaluation-result').show();
+                    } else {
+                        $('#evaluation-content').html('No evaluation result found.');
+                        $('#evaluation-result').show();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    $('#evaluation-content').html('<strong>Error:</strong> Failed to get evaluation result.');
+                    $('#evaluation-result').show();
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
