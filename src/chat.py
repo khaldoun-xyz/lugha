@@ -1,26 +1,22 @@
 # chat.py
 import argparse
-import os
 from datetime import datetime
-
 import psycopg2
-from dotenv import load_dotenv
-from groq import Groq
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.styles import Style
+from create_db import initialize_groq_client
 
-load_dotenv()
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-MODEL = os.getenv("MODEL")
-POSTGRES_DB = os.getenv("POSTGRES_DB")
-POSTGRES_USER = os.getenv("POSTGRES_USER")
-POSTGRES_PW = os.getenv("POSTGRES_PW")
-POSTGRES_HOST = os.getenv("POSTGRES_HOST")
-POSTGRES_PORT = os.getenv("POSTGRES_PORT")
+config = initialize_groq_client()
+client = config["client"]
 
-client = Groq(api_key=GROQ_API_KEY)
+POSTGRES_DB = config["POSTGRES_DB"]
+POSTGRES_USER = config["POSTGRES_USER"]
+POSTGRES_PW = config["POSTGRES_PW"]
+POSTGRES_HOST = config["POSTGRES_HOST"]
+POSTGRES_PORT = config["POSTGRES_PORT"]
+MODEL = config["MODEL"]
 
 def create_db_connection():
     """Create a database connection."""
