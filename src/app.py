@@ -1,27 +1,26 @@
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO
-from datetime import datetime, timedelta
-import os
-from dotenv import load_dotenv
-from groq import Groq
+from datetime import datetime
+from create_db import initialize_groq_client
 from chat import log_conversation_to_db, create_db_connection
 from evaluate import evaluate_last_conversation,get_last_conversation, format_duration
 
-load_dotenv()
 
 app = Flask(__name__, template_folder='templates')
 socketio = SocketIO(app)
 
-# Load environment variables
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-MODEL = os.getenv("MODEL")
-POSTGRES_DB = os.getenv("POSTGRES_DB")
-POSTGRES_USER = os.getenv("POSTGRES_USER")
-POSTGRES_PW = os.getenv("POSTGRES_PW")
-POSTGRES_HOST = os.getenv("POSTGRES_HOST")
-POSTGRES_PORT = os.getenv("POSTGRES_PORT")
 
-client = Groq(api_key=GROQ_API_KEY)
+config = initialize_groq_client()
+client = config["client"]
+
+POSTGRES_DB = config["POSTGRES_DB"]
+POSTGRES_USER = config["POSTGRES_USER"]
+POSTGRES_PW = config["POSTGRES_PW"]
+POSTGRES_HOST = config["POSTGRES_HOST"]
+POSTGRES_PORT = config["POSTGRES_PORT"]
+MODEL = config["MODEL"]
+
+
 
 # Store active conversations
 conversations = {}
@@ -47,8 +46,8 @@ def chat():
     # Prepare conversation history for the model
     conversation_history = [
         {"role": "system", "content": "You reply in 50 words or less in the language the user sends you."},
-        {"role": "user", "content": user_message},
-    ]
+    ] + conversations[username]['history']  
+    conversation_history.append({"role": "user", "content": user_message})
 
     try:
         chat_completion = client.chat.completions.create(

@@ -1,23 +1,18 @@
 import argparse
-import os
-import psycopg2
-from datetime import datetime
-from dotenv import load_dotenv
 from groq import Groq
+from create_db import initialize_groq_client
 from chat import create_db_connection
 
-# Load environment variables
-load_dotenv()
-POSTGRES_DB = os.getenv("POSTGRES_DB")
-POSTGRES_USER = os.getenv("POSTGRES_USER")
-POSTGRES_PW = os.getenv("POSTGRES_PW")
-POSTGRES_HOST = os.getenv("POSTGRES_HOST")
-POSTGRES_PORT = os.getenv("POSTGRES_PORT")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-MODEL = os.getenv("MODEL")
 
-# Initialize Groq client
-client = Groq(api_key=GROQ_API_KEY)
+config = initialize_groq_client()
+client = config["client"]
+
+POSTGRES_DB = config["POSTGRES_DB"]
+POSTGRES_USER = config["POSTGRES_USER"]
+POSTGRES_PW = config["POSTGRES_PW"]
+POSTGRES_HOST = config["POSTGRES_HOST"]
+POSTGRES_PORT = config["POSTGRES_PORT"]
+MODEL = config["MODEL"]
 
 def fetch_last_conversation_times(username):
     """Fetch the start and end times of the last conversation."""
