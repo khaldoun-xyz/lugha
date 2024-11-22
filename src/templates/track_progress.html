@@ -5,23 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Track Progress</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         .progress-item {
-            border: 1px solid #ccc;
+            background-color: var(--light-surface);
+            border: 1px solid var(--light-border);
             border-radius: 5px;
             padding: 10px;
             margin-bottom: 10px;
+            transition: var(--theme-transition);
+        }
+        .dark .progress-item {
+            background-color: var(--dark-surface);
+            border-color: var(--dark-border);
         }
     </style>
 </head>
 <body>
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sun-icon">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="moon-icon" style="display: none;">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+    </button>
     <div class="container">
         <h1 class="mt-5">Track Your Progress</h1>
         <div id="progress-container"></div>
         <a href="/" class="btn btn-secondary mt-4">Back to Home</a>
-
-        <!-- Duration Modal -->
         <div class="modal fade" id="durationModal" tabindex="-1" role="dialog" aria-labelledby="durationModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -34,44 +55,59 @@
                 </div>
             </div>
         </div>
-
-        <script>
-            $(document).ready(function() {
-                const username = localStorage.getItem('username'); // Store username in localStorage for easy access
-        
-                // Fetch progress data from the server
-                $.ajax({
-                    url: '/fetch-progress',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ username: username }),
-                    success: function(data) {
-                        if (data.progress) {
-                            data.progress.forEach(item => {
-                                // Format the evaluation text
-                                const formattedEvaluation = item.evaluation
-                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
-                                    .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italics
-                                    .replace(/\n/g, '<br>'); // Replace newlines with <br>
-        
-                                $('#progress-container').append(`
-                                    <div class="progress-item">
-                                        <strong>Duration:</strong> ${item.duration}<br>
-                                        <strong>Interactions:</strong> ${item.interaction_count}<br>
-                                        <strong>Evaluation:</strong> ${formattedEvaluation}
-                                    </div>
-                                `);
-                            });
-                        } else {
-                            $('#progress-container').append('<p>No progress data available.</p>');
-                        }
-                    },
-                    error: function(err) {
-                        console.error(err);
-                        alert('Error fetching progress data. Please try again.');
+    </div>
+    <script>
+        $(document).ready(function() {
+            const username = localStorage.getItem('username'); 
+            $.ajax({
+                url: '/fetch-progress',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ username: username }),
+                success: function(data) {
+                    if (data.progress) {
+                        data.progress.forEach(item => {
+                            const formattedEvaluation = item.evaluation
+                                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
+                                .replace(/\*(.*?)\*/g, '<em>$1</em>') 
+                                .replace(/\n/g, '<br>'); 
+                            $('#progress-container').append(`
+                                <div class="progress-item">
+                                    <strong>Duration:</strong> ${item.duration}<br>
+                                    <strong>Interactions:</strong> ${item.interaction_count}<br>
+                                    <strong>Evaluation:</strong> ${formattedEvaluation}
+                                </div>
+                            `);
+                        });
+                    } else {
+                        $('#progress-container').append('<p>No progress data available.</p>');
                     }
-                });
+                },
+                error: function(err) {
+                    console.error(err);
+                    alert('Error fetching progress data. Please try again.');
+                }
             });
-        </script>
+
+            const themeToggle = document.getElementById('theme-toggle');
+            const sunIcon = themeToggle.querySelector('.sun-icon');
+            const moonIcon = themeToggle.querySelector('.moon-icon');
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark');
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            }
+            themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark');
+                const isDark = document.body.classList.contains('dark');
+
+                sunIcon.style.display = isDark ? 'none' : 'block';
+                moonIcon.style.display = isDark ? 'block' : 'none';
+
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            });
+        });
+    </script>
 </body>
 </html>
