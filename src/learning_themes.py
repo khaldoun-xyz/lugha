@@ -1,0 +1,68 @@
+LEARNING_THEMES = {
+    "Everyday life": [
+        "Hobbies and interests",
+        "Daily routines",
+        "Family and friends",
+        "Health and fitness",
+        "Shopping and leisure activities",
+        "Housing and living situations",
+        "Planning daily tasks and events",
+    ],
+    "Work and education": [
+        "Job applications and interviews",
+        "Workplace communication",
+        "Professional development and training",
+        "Student life and university studies",
+        "Balancing work and studies",
+    ],
+    "Travel and tourism": [
+        "Planning trips and vacations",
+        "Accommodation and transportation",
+        "Sightseeing and cultural experiences",
+        "Travel safety and health",
+        "Language challenges while traveling",
+    ],
+    "Social issues": [
+        "Current events and news",
+        "Environmental issues",
+        "Social justice and equality",
+        "Digital privacy and online safety",
+        "Immigration and integration",
+    ],
+    "Culture and society": [
+        "German culture and history",
+        "Music, art, and literature",
+        "Festivals and traditions",
+        "Social norms and etiquette",
+        "Comparing cultures",
+    ],
+    "Advanced everyday life": [
+        "Discussing complex topics and expressing opinions",
+        "Writing formal and informal letters and emails",
+        "Giving presentations and speeches",
+        "Handling conflicts and negotiations",
+    ],
+    "Advanced work and education": [
+        "Career planning and professional development",
+        "Business communication and negotiations",
+        "Academic writing and research",
+        "International business etiquette",
+    ],
+    "Advanced travel and tourism": [
+        "Long-term travel and study abroad",
+        "Cultural exchange and intercultural communication",
+        "Sustainable travel practices",
+    ],
+    "Advanced social issues": [
+        "Global issues and international cooperation",
+        "Political systems and current affairs",
+        "Social and economic inequality",
+        "Technological impact on society",
+    ],
+    "Advanced culture and society": [
+        "German literature and philosophy",
+        "Contemporary German culture and media",
+        "Historical events and their impact on society",
+        "Analyzing German films and theater",
+    ],
+}
