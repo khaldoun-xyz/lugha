@@ -4,3 +4,5 @@ prompt_toolkit
 psycopg2-binary
 flask
 flask-socketio
+gunicorn
+
