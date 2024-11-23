@@ -20,7 +20,7 @@ def log_conversation_to_db(username, prompt, response, start_time, end_time, int
     duration = end_time - start_time
     conn = create_db_connection()
     if conn is None:
-        return
+        raise Exception("conn is None")
 
     try:
         with conn.cursor() as cursor:
