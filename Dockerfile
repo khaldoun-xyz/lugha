@@ -1,6 +1,7 @@
 FROM python:3.11-alpine
 
 WORKDIR '/app'
+ENV PYTHONPATH=/app
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt
@@ -18,4 +19,4 @@ ENV FLASK_RUN_HOST=0.0.0.0
 
 EXPOSE 5000
 
-CMD ["flask", "run"]
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]
