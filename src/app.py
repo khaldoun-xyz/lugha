@@ -17,47 +17,12 @@ socketio = SocketIO(app)
 
 conversations = {}
 
-@app.route('/start-evaluation', methods=['POST'])
-def start_evaluation():
-    username = request.json['username']
-    language = request.json['language']
-
-    conversations[username] = {
-        'history': [],
-        'start_time': datetime.now(),
-        'interaction_count': 0,
-        'logging_enabled': True,
-        'language': language  
-    }
-
-
-    welcome_prompt = f"Generate a welcoming message for a language learning chatbot just in {language}. Reply in 50 words or less."
-    welcome_message = get_groq_response([{"role": "user", "content": welcome_prompt}])
-    conversations[username]['history'].append({'role': 'assistant', 'content': welcome_message})
-
-    return jsonify({'response': welcome_message})
-
-@app.route('/restart-conversation', methods=['POST'])
-def restart_conversation():
-    username = request.json['username']
-    language = request.json['language']
-
-    if username in conversations:
-        del conversations[username]
-    conversations[username] = {
-        'history': [],
-        'start_time': datetime.now(),
-        'interaction_count': 0,
-        'logging_enabled': True,
-        'language': language
-    }
-
-    welcome_prompt = f"Generate a welcoming message for a language learning chatbot just in {language}. Reply in 50 words or less."
-    welcome_message = get_groq_response([{"role": "user", "content": welcome_prompt}])
-    welcome_message = welcome_message.replace('"', '').strip()  
-    conversations[username]['history'].append({'role': 'assistant', 'content': welcome_message})
-
-    return jsonify({'response': welcome_message})
+@app.route('/debug-env')
+def debug_env():
+    print(initialize_groq_client())
+    return jsonify({
+        'GROQ_API_KEY': Config.GROQ_API_KEY
+    })
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -116,6 +81,50 @@ def chat():
             return jsonify({'response': response})
         except Exception as e:
             return jsonify({'error': str(e)})
+
+
+@app.route('/start-evaluation', methods=['POST'])
+def start_evaluation():
+    username = request.json['username']
+    language = request.json['language']
+
+    conversations[username] = {
+        'history': [],
+        'start_time': datetime.now(),
+        'interaction_count': 0,
+        'logging_enabled': True,
+        'language': language  
+    }
+
+
+    welcome_prompt = f"Generate a welcoming message for a language learning chatbot just in {language}. Reply in 50 words or less."
+    welcome_message = get_groq_response([{"role": "user", "content": welcome_prompt}])
+    conversations[username]['history'].append({'role': 'assistant', 'content': welcome_message})
+
+    return jsonify({'response': welcome_message})
+
+@app.route('/restart-conversation', methods=['POST'])
+def restart_conversation():
+    username = request.json['username']
+    language = request.json['language']
+
+    if username in conversations:
+        del conversations[username]
+    conversations[username] = {
+        'history': [],
+        'start_time': datetime.now(),
+        'interaction_count': 0,
+        'logging_enabled': True,
+        'language': language
+    }
+
+    welcome_prompt = f"Generate a welcoming message for a language learning chatbot just in {language}. Reply in 50 words or less."
+    welcome_message = get_groq_response([{"role": "user", "content": welcome_prompt}])
+    welcome_message = welcome_message.replace('"', '').strip()  
+    conversations[username]['history'].append({'role': 'assistant', 'content': welcome_message})
+
+    return jsonify({'response': welcome_message})
+
 @app.route('/end-conversation', methods=['POST'])
 def end_conversation():
     username = request.json['username']

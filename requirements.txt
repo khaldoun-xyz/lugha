@@ -2,5 +2,5 @@ python-dotenv
 groq
 prompt_toolkit
 psycopg2-binary
-Flask
+flask
 flask-socketio
