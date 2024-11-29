@@ -5,8 +5,8 @@
 # how to get going on your laptop
 - create a .env file and provide relevant parameters
 - create a virtualenv or conda environment using the requirements.txt file & activate it
-- navigate to `src` & start chatting with `python chat.py -u <your_user_name>`
-- App Interface: To use the app interface, navigate to `src` & run: `python app.py`
+- navigate to `src` & start chatting with `python -m cli_interface.chat -u <your_user_name>`
+- App Interface: To use the app interface, navigate to `src` & run: `python -m flask_interface.app`
 
 ----
 

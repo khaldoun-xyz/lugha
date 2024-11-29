@@ -12,13 +12,6 @@ body {
 
 html { scroll-behavior: smooth; }
 
-/* Light Mode */
-body:not(.dark) {
-  background-color: var(--light-background);
-  color: var(--light-text);
-}
-
-
 /* Enhanced Evaluation Block */
 #evaluation {
   width: 100%;
@@ -31,7 +24,6 @@ body:not(.dark) {
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
 
 #evaluation.started {
   transform: translateX(-70%);
@@ -107,6 +99,14 @@ body:not(.dark) {
   outline: none;
 }
 
+/* Style for disabled form controls */
+.form-control:disabled {
+  background: rgba(255, 255, 255, 0.05); 
+  color: var(--dark-text); 
+  cursor: not-allowed; 
+  opacity: 0.7; 
+}
+
 /* Refined Buttons */
 .btn {
   display: inline-flex;
@@ -145,12 +145,6 @@ body:not(.dark) {
   color: white;
 }
 
-/* Light Mode Overrides */
-body:not(.dark) #evaluation,
-body:not(.dark) #chat-box {
-  background: var(--light-surface);
-  border: 1px solid var(--light-border);
-}
 
 /* Responsive Design */
 @media (max-width: 1200px) {
