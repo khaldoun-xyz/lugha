@@ -1,15 +1,4 @@
 :root {
-  /* Enhanced Light Mode Colors */
-  --light-background: #f8fafc;
-  --light-surface: #ffffff;
-  --light-text: #1e293b;
-  --light-primary: #6366f1;
-  --light-secondary: #64748b;
-  --light-border: #e2e8f0;
-  --light-chat-user: #818cf8;
-  --light-chat-bot: #f1f5f9;
-  --light-accent: #c7d2fe;
-
   /* Enhanced Dark Mode Colors */
   --dark-background: #0f172a;
   --dark-surface: #1e293b;

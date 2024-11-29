@@ -1,7 +1,6 @@
 #evaluate.py
 import argparse
-from chat import create_db_connection
-from config import Config, create_db_connection, initialize_groq_client
+from utils.config import Config, create_db_connection, initialize_groq_client
 client = initialize_groq_client()
 MODEL = Config.MODEL
 

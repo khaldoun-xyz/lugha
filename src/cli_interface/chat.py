@@ -1,55 +1,16 @@
-# chat.py
+#chat.py
 import argparse
 from datetime import datetime
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory
-from config import Config, create_db_connection, initialize_groq_client
-from learning_themes import LEARNING_THEMES
+from utils.config import Config, initialize_groq_client
+from utils.learning_themes import LEARNING_THEMES
+from utils.database_utils import log_conversation_to_db
+from utils.conversation_utils import get_groq_response  
 import random
-
-
 
 client = initialize_groq_client()
 MODEL = Config.MODEL
-
-def log_conversation_to_db(username, prompt, response, start_time, end_time, interaction_count):
-    if start_time is None or end_time is None:
-        print(f"Start time or end time is None for user: {username}. Cannot log conversation.")
-        return
-
-    duration = end_time - start_time
-    conn = create_db_connection()
-    if conn is None:
-        raise Exception("conn is None")
-
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                INSERT INTO conversations (username, prompt, response, created_at, start_time, end_time, interaction_count, duration)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                """,
-                (username, prompt, response, datetime.now(), start_time, end_time, interaction_count, duration)
-            )
-            conn.commit()
-    except Exception as e:
-        print(f"Error logging conversation: {e}")
-    finally:
-        conn.close()
-
-def get_groq_response(conversation_history):
-    try:
-        return groq_llm_api_call(conversation_history).strip()
-    except Exception as e:
-        return f"Error: {e}"
-
-def groq_llm_api_call(conversation_history):
-    """Call the Groq LLM API."""
-    chat_completion = client.chat.completions.create(
-        messages=conversation_history,
-        model=MODEL,
-    )
-    return chat_completion.choices[0].message.content
 
 def display_learning_themes():
     print("\nAvailable Learning Themes:")
@@ -139,6 +100,7 @@ def chat_with_groq_llm(username):
                 log_conversation_to_db(username, "Session interrupted.", "Goodbye!", start_time, end_time, interaction_count)
             print("\nExiting Groq LLM Chat. Goodbye!")
             break
+
 if __name__ == "__main__":  
     parser = argparse.ArgumentParser(description="Chat with Groq LLM and log conversations.")  
     parser.add_argument("-u", "--user", required=True, help="Specify the username for logging")  
