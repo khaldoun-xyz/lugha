@@ -1,6 +1,6 @@
 from datetime import datetime
 from utils.config import create_db_connection
-from cli_interface.evaluate import format_duration
+from evaluation_utils.evaluate import format_duration
 from utils.learning_themes import LEARNING_THEMES
 
 def log_conversation_to_db(username, prompt, response, start_time, end_time, interaction_count):
@@ -28,21 +28,31 @@ def log_conversation_to_db(username, prompt, response, start_time, end_time, int
     finally:
         conn.close()
 
-def fetch_user_progress(username):
+def fetch_progress_data(username):
     try:
         conn = create_db_connection()
         with conn.cursor() as cursor:
-            cursor.execute("SELECT duration, interaction_count, evaluation FROM conversations WHERE username = %s AND evaluation IS NOT NULL", (username,))
+            cursor.execute(
+                "SELECT duration, interaction_count, evaluation FROM conversations WHERE username = %s AND evaluation IS NOT NULL",
+                (username,)
+            )
             progress = cursor.fetchall()
+            if not progress:
+                print(f"No progress data available for username: {username}")
+                return []
             result = []
             for row in progress:
+                duration = row[0]  
+                formatted_duration = format_duration(duration) 
                 result.append({
-                    'duration': format_duration(row[0]),
+                    'duration': formatted_duration, 
                     'interaction_count': row[1],
                     'evaluation': row[2]
                 })
-        return result
+            return result
     except Exception as e:
-        return {'error': f"Failed to fetch progress data: {str(e)}"}
+        print(f"Error fetching progress data: {e}")
+        return None
     finally:
-        conn.close()
+        if conn:
+            conn.close()

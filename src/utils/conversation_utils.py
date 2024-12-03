@@ -1,9 +1,9 @@
+# conversation_utils.py
 from datetime import datetime
 import random
 import re
 from utils.database_utils import log_conversation_to_db
-from cli_interface.evaluate import evaluate_last_conversation, get_last_conversation, format_duration
-from utils.learning_themes import LEARNING_THEMES
+from evaluation_utils.evaluate import evaluate_last_conversation, get_last_conversation, format_duration
 from utils.config import initialize_groq_client, Config
 
 client = initialize_groq_client()
@@ -21,7 +21,7 @@ def get_groq_response(conversation_history):
         return f"Error: {e}"
 
 def initialize_conversation(language):
-    welcome_prompt = f"Generate a welcoming message for a language learning chatbot just in {language}. Reply in 50 words or less."
+    welcome_prompt = f"Generate a welcoming message for a free-flowing conversation as a language learning coach in {language}. Reply in 50 words or less."
     welcome_message = get_groq_response([{"role": "user", "content": welcome_prompt}])
     return {
         'history': [{'role': 'assistant', 'content': welcome_message.strip()}],
@@ -42,35 +42,17 @@ def process_user_message(conversations, client, model, username, user_message):
         conversations[username]['history'].append({'role': 'user', 'content': user_message})
         conversations[username]['interaction_count'] += 1
 
-        history = [{"role": "system", "content": f"You are a language coach. Reply in 50 words or less in {language}."}]
+        history = [{"role": "system", "content": f"You are a language coach. Reply naturally in {language}."}]
         history += conversations[username]['history']
         chat_completion = client.chat.completions.create(messages=history, model=model)
         response = chat_completion.choices[0].message.content.strip()
         response = re.sub(r'\(.*?\)', '', response).strip()
         conversations[username]['history'].append({'role': 'assistant', 'content': response})
 
-        if conversations[username]['interaction_count'] == 1:
-            response += "\n" + initialize_first_topic(conversations, username, language)
-        elif conversations[username]['interaction_count'] == 3:
-            response += "\n" + suggest_random_theme(conversations, username, language)
-
         log_conversation_to_db(username, user_message, response, conversations[username]['start_time'], datetime.now(), conversations[username]['interaction_count'])
         return response
     except Exception as e:
         return {'error': str(e)}
-
-def initialize_first_topic(conversations, username, language):
-    prompt = f"What would you like to talk about just in {language}? Reply in 50 words or less."
-    response = get_groq_response([{"role": "user", "content": prompt}])
-    conversations[username]['history'].append({'role': 'assistant', 'content': response.strip()})
-    return response.strip()
-
-def suggest_random_theme(conversations, username, language):
-    random_theme = random.choice(list(LEARNING_THEMES.keys()))
-    prompt = f"Let's discuss {random_theme} in {language}. Reply in 50 words or less."
-    response = get_groq_response([{"role": "user", "content": prompt}])
-    conversations[username]['history'].append({'role': 'assistant', 'content': response.strip()})
-    return response.strip()
 
 def log_end_conversation(conversations, username):
     start_time = conversations[username]['start_time']

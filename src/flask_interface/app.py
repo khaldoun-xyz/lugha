@@ -1,9 +1,9 @@
-#app.py
+# app.py
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO
 
 from utils.config import Config, initialize_groq_client
-from utils.database_utils import fetch_user_progress
+from utils.database_utils import fetch_progress_data
 from utils.conversation_utils import (
     initialize_conversation,
     restart_conversation_logic,
@@ -75,10 +75,12 @@ def evaluate():
 @app.route('/fetch-progress', methods=['POST'])
 def fetch_progress():
     username = request.json['username']
-    progress = fetch_user_progress(username)
-    if isinstance(progress, dict) and 'error' in progress:
-        return jsonify(progress), 500
-    return jsonify({'progress': progress})
+    progress = fetch_progress_data(username)
+    if progress is None:
+        return jsonify({'error': 'Failed to fetch progress data'}), 500
+    elif not progress: 
+        return jsonify({'message': 'No progress data available for this user.'}), 404
+    return jsonify({'progress': progress}), 200  
 
 
 @app.route('/track_progress')
