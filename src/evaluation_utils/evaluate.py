@@ -1,7 +1,6 @@
 #evaluate.py
 import argparse
-from chat import create_db_connection
-from config import Config, create_db_connection, initialize_groq_client
+from utils.config import Config, create_db_connection, initialize_groq_client
 client = initialize_groq_client()
 MODEL = Config.MODEL
 
@@ -96,15 +95,16 @@ def evaluate_last_conversation(username, language):
     formatted_duration = format_duration(duration)
 
     prompt = (
-        f"Based on the following conversation history, rate the {language} proficiency of the user on a scale from 0 to 100 and only consider the messages in that language, "
-        "mentioning their strong and weak points:\n\n"
+        f"Based on the following conversation history, please provide the following metrics for the user's {language} proficiency:\n"
+        "Rate overall score (%), Grammar proficiency (%), Vocabulary usage (%), Communication clarity (%), Logical reasoning (%)\n\n"
+        "Additionally, mention the user's strengths and weaknesses and provide advice for improvement.\n\n"
         f"{last_conversation}\n\n"
     )
 
     try:
         chat_completion = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "You are an expert language evaluator ."},
+                {"role": "system", "content": "You are an expert language evaluator."},
                 {"role": "user", "content": prompt},
             ],
             model=MODEL,
@@ -119,25 +119,3 @@ def evaluate_last_conversation(username, language):
         return response, interaction_count, formatted_duration
     except Exception as e:
         return f"Error during LLM evaluation: {e}", interaction_count, duration
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Evaluate a user's language proficiency based on the last conversation."
-    )
-    parser.add_argument("-u", "--username", required=True, help="Username to evaluate ")
-    parser.add_argument(
-        "-l",
-        "--language",
-        required=True,
-        help="Language to evaluate (e.g., English, French, German)",
-    )
-
-    args = parser.parse_args()
-    username = args.username
-    language = args.language
-
-    evaluation, interaction_count, duration = evaluate_last_conversation(username, language)
-
-    print(f"You have interacted with the LLM {interaction_count} times.")
-    print(f"Duration of the last conversation: {duration}")
-    print(f"Your evaluation result: {evaluation}")

@@ -1,5 +1,5 @@
 # create_db.py
-from config import create_db_connection
+from utils.config import create_db_connection
 create_table_query = """
 CREATE TABLE IF NOT EXISTS conversations (
     id SERIAL PRIMARY KEY,
