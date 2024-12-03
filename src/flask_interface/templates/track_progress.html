@@ -45,7 +45,7 @@
                 contentType: 'application/json',
                 data: JSON.stringify({ username: username }),
                 success: function(data) {
-                    if (data.progress) {
+                    if (Array.isArray(data.progress) && data.progress.length > 0) { 
                         data.progress.forEach(item => {
                             const formattedEvaluation = item.evaluation
                                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
