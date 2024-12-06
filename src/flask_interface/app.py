@@ -18,8 +18,6 @@ app = Flask(__name__, template_folder='templates')
 socketio = SocketIO(app)
 conversations = {}
 
-
-
 @app.route('/start-evaluation', methods=['POST'])
 def start_evaluation():
     data = request.json
@@ -27,14 +25,12 @@ def start_evaluation():
     conversations[username] = initialize_conversation(language)
     return jsonify({'response': conversations[username]['history'][0]['content']})
 
-
 @app.route('/restart-conversation', methods=['POST'])
 def restart_conversation():
     data = request.json
     username, language = data['username'], data['language']
     conversations[username] = restart_conversation_logic(conversations, username, language)
     return jsonify({'response': conversations[username]['history'][0]['content']})
-
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -48,7 +44,6 @@ def chat():
         return jsonify(response), 500
     return jsonify({'response': response})
 
-
 @app.route('/end-conversation', methods=['POST'])
 def end_conversation():
     username = request.json['username']
@@ -57,7 +52,6 @@ def end_conversation():
 
     summary = log_end_conversation(conversations, username)
     return jsonify(summary)
-
 
 @app.route('/evaluate', methods=['POST'])
 def evaluate():
@@ -71,7 +65,6 @@ def evaluate():
         return jsonify(result), 400
     return jsonify({'evaluation': result})
 
-
 @app.route('/fetch-progress', methods=['POST'])
 def fetch_progress():
     username = request.json['username']
@@ -82,16 +75,17 @@ def fetch_progress():
         return jsonify({'message': 'No progress data available for this user.'}), 404
     return jsonify({'progress': progress}), 200  
 
-
 @app.route('/track_progress')
 def track_progress():
     return render_template('track_progress.html')
 
+@app.route('/chat-interface')
+def chat_interface():
+    return render_template('chat_interface.html')
 
 @app.route('/')
-def index():
-    return render_template('index.html')
-
+def welcome():
+    return render_template('welcome.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

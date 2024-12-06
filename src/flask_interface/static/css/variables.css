@@ -1,35 +1,41 @@
+/*variables.css */
 :root {
-  /* Enhanced Dark Mode Colors */
-  --dark-background: #0f172a;
-  --dark-surface: #1e293b;
-  --dark-text: #f8fafc;
-  --dark-primary: #818cf8;
-  --dark-secondary: #94a3b8;
-  --dark-border: #334155;
-  --dark-chat-user: #6366f1;
-  --dark-chat-bot: #1e293b;
+  /* Colors */
+  --dark-background: #0a0d14;
+  --dark-surface: #111827;
+  --dark-surface-lighter: #1f2937;
+  --dark-card: rgba(17, 24, 39, 0.7);
+  --dark-text: #ffffff;
+  --dark-text-secondary: #94a3b8;
+  --dark-border: rgba(255, 255, 255, 0.1);
+  --dark-primary: #b818f3;
+  --dark-primary-hover: #a315d9;
   --dark-accent: #4f46e5;
-
-  /* Additional Colors */
   --danger: #ef4444;
   --info: #3b82f6;
 
-  /* Enhanced Shadows */
+  /* Gradients */
+  --purple-gradient: linear-gradient(to right, #b818f3, #ff47ed);
+  
+  /* Shadows */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
-  
-  /* Smooth Transitions */
-  --theme-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  /* Consistent Spacing */
+  --purple-glow: 0 0 20px rgba(184, 24, 243, 0.3);
+  --button-shadow: 0 4px 12px rgba(184, 24, 243, 0.3);
+
+  /* Spacing */
   --spacing-xs: 0.5rem;
   --spacing-sm: 0.75rem;
   --spacing-md: 1.25rem;
   --spacing-lg: 2rem;
-  
-  /* Refined Border Radius */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  /* Transitions */
+  --transition-all: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+

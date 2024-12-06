@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Langua Chat Interface</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/css/chat-interface.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo-container">
+            <div class="logo-icon">L</div>
+            <div class="logo-text">Langua</div>
+        </div>
+        <button onclick="window.location.href='/';" class="sidebar-button">
+            <i data-feather="home"></i> Back to Home
+        </button>
+        <button onclick="window.location.href='/track_progress';" id="track-progress" class="sidebar-button">
+            <i data-feather="bar-chart-2"></i> Track Progress
+        </button>
+        <div class="form-group">
+            <label for="language">Preferred Language</label>
+            <select class="form-control" id="language" disabled>
+                <option value="english">English</option>
+                <option value="french">French</option>
+                <option value="german">German</option>
+            </select>
+            <span id="language-status" class="language-status">Language Selection Enabled</span>
+        </div>
+        <button id="restart-conversation" class="sidebar-button" style="display:none;">
+            <i data-feather="refresh-cw"></i> Restart Conversation
+        </button>
+    </div>
+    <div class="main-content">
+        <div id="chat-interface">
+            <div id="chat-box"></div>
+            <div class="input-group">
+                <input type="text" id="user-message" class="form-control" placeholder="Type your message..." required>
+                <button id="end-conversation" class="btn btn-secondary">End Conversation</button>
+            </div>
+        </div>
+        <div id="loading-indicator" style="display:none;">
+            <div class="loading-spinner"></div>
+        </div>
+        <div class="evaluation-container">
+            <div id="evaluation-message" style="display:none;"></div>
+            <div id="evaluation-result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Add the toast notification element -->
+    <div id="toast" class="toast">Language selection is now enabled</div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const username = urlParams.get('username');
+            let language = urlParams.get('language');
+            $('#language').val(language);
+            feather.replace();
+    
+            $('#chat-interface').show();
+            $('#user-message').prop('disabled', false);
+    
+            $.ajax({
+                url: '/start-evaluation',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ username, language }),
+                success: function(data) {
+                    if (data.response) {
+                        $('#chat-box').append('<div class="message-bubble bot-message"><strong>Groq LLM:</strong> ' + data.response + '</div>');
+                    }
+                },
+                error: function(err) {
+                    console.error(err);
+                    alert('Error starting evaluation. Please try again.');
+                }
+            });
+    
+            function sendMessage() {
+                const message = $('#user-message').val();
+                if (message) {
+                    $('#chat-box').append(`<div class="message-bubble user-message"><strong>${username}:</strong> ${message}</div>`);
+                    $('#user-message').val('');
+                    $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);
+                    
+                    $.ajax({
+                        url: '/chat',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ username, message, language }),
+                        success: function(data) {
+                            if (data.response) {
+                                $('#chat-box').append(`<div class="message-bubble bot-message"><strong>Groq LLM:</strong> ${data.response}</div>`);
+                                $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);
+                            } else {
+                                console.warn('No response from bot');
+                            }
+                        },
+                        error: function(err) {
+                            console.error(err);
+                            alert('Error sending message. Please try again.');
+                        }
+                    });
+                }
+            }
+    
+            $('#user-message').keypress(function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+    
+            $('#end-conversation').click(function() {
+                $('#loading-indicator').show();
+                $('html, body').animate({
+                    scrollTop: $('#loading-indicator').offset().top
+                }, 500);
+                $.ajax({
+                    url: '/end-conversation',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ username }),
+                    success: function(data) {
+                        $('#loading-indicator').hide();
+                        $('#evaluation-message').text(`You interacted ${data.interaction_count} times over a duration of ${data.total_duration} seconds.`).show();
+                        if (data.evaluation) {
+                            $('#evaluation-result').html('<strong>Evaluation Result:</strong><br>' + data.evaluation.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>')).show();
+                            
+                            $('html, body').animate({
+                                scrollTop: $('#evaluation-result').offset().top
+                            }, 500);
+                        }
+                        $('#language').prop('disabled', false);
+                        
+                        // Show language status with fade animation
+                        $('#language-status').addClass('show');
+                        
+                        // Show toast notification
+                        $('#toast').addClass('show');
+                        setTimeout(function() {
+                            $('#toast').removeClass('show');
+                        }, 3000);
+
+                        $('#restart-conversation').show();
+                        $('#user-message').prop('disabled', true);
+                        $('#end-conversation').prop('disabled', true);
+                    },
+                    error: function(err) {
+                        $('#loading-indicator').hide();
+                        console.error(err);
+                        alert('Error ending conversation. Please try again.');
+                    }
+                });
+            });
+    
+            $('#restart-conversation').click(function() {
+                language = $('#language').val();
+                $('#chat-box').empty(); 
+                $('#evaluation-message').hide();
+                $('#evaluation-result').hide();
+                $('#user-message').val('');
+                $('#user-message').prop('disabled', false);
+                $('#end-conversation').prop('disabled', false);
+                $('#restart-conversation').hide();
+                $('#language').prop('disabled', true);
+                $('#language-status').hide();
+                $('#chat-interface').show();
+    
+                $.ajax({
+                    url: '/restart-conversation',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ username, language }), 
+                    success: function(data) {
+                        if (data.response) {
+                            $('#chat-box').append('<div class="message-bubble bot-message"><strong>Groq LLM:</strong> ' + data.response + '</div>');
+                            $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);
+                        }
+                    },
+                    error: function(err) {
+                        console.error(err);
+                        alert('Error restarting conversation. Please try again.');
+                    }
+                });
+            });
+    
+            $('#track-progress').click(function() {
+                window.location.href = '/track_progress';
+            });
+        });
+    </script>
+</body>
+</html>
+

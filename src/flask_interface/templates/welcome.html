@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Langua - Your AI Language Coach</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="welcome-container">
+        <div class="welcome-card">
+            <div class="logo-container">
+                <div class="logo-icon">L</div>
+                <div class="logo-text">Langua</div>
+            </div>
+            <h1 class="welcome-title">Welcome to <span>Langua</span></h1>
+            <p class="welcome-subtitle">Your AI-powered Language Coach</p>
+            <div class="message-card">
+                <h2 class="message-title">Build your tailored language coach 'Ally'</h2>
+                <p class="message-description">
+                    Elevate your language skills with an AI-powered coach designed just for you.
+                    Engage in real-time conversations, practice fluency, and unlock your full potential
+                    faster than ever.
+                </p>
+            </div>
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="username">Enter your name:</label>
+                    <input type="text" class="form-control" id="username" placeholder="Your Name" required>
+                </div>
+                <div class="form-group">
+                    <label for="language">Preferred Language:</label>
+                    <select class="form-control" id="language">
+                        <option value="english">English</option>
+                        <option value="french">French</option>
+                        <option value="german">German</option>
+                    </select>
+                </div>
+                <div class="button-group">
+                    <button id="get-started" class="btn btn-primary">Get Started</button>
+                    <button id="track-progress" class="btn btn-secondary">Track Progress</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            $('#get-started').click(function() {
+                const username = $('#username').val();
+                const language = $('#language').val();
+                if (username && language) {
+                    window.location.href = `/chat-interface?username=${encodeURIComponent(username)}&language=${encodeURIComponent(language)}`;
+                } else {
+                    alert('Please enter your name and preferred language.');
+                }
+            });
+
+            $('#track-progress').click(function() {
+                window.location.href = '/track_progress';
+            });
+        });
+    </script>
+</body>
+</html>
