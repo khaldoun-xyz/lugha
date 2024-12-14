@@ -1,121 +1,185 @@
-#evaluate.py
-import argparse
+# evaluation_utils/evaluate.py
+from datetime import datetime
+from typing import Tuple, List, Optional, Any
 from utils.config import Config, create_db_connection, initialize_groq_client
+from dataclasses import dataclass
+
 client = initialize_groq_client()
 MODEL = Config.MODEL
 
+@dataclass
+class ConversationTimes:
+    start_time: datetime
+    end_time: datetime
 
-def fetch_last_conversation_times(username):
-    """Fetch the start and end times of the last conversation."""
-    query = """ 
-        SELECT start_time, end_time 
-        FROM conversations 
-        WHERE username = %s 
-        AND start_time IS NOT NULL 
-        AND end_time IS NOT NULL 
-        ORDER BY created_at DESC 
-        LIMIT 1
-    """
-    with create_db_connection() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(query, (username,))
-            return cursor.fetchone()
+@dataclass
+class ConversationDetails:
+    conversation_text: str
+    interaction_count: int
+    duration: Optional[datetime]
 
-def fetch_last_conversation(username, start_time, end_time):
-    """Fetch the last conversation details based on the times."""
-    query = """
-        SELECT prompt, response, interaction_count 
-        FROM conversations 
-        WHERE username = %s 
-        AND start_time >= %s 
-        AND end_time <= %s 
-        ORDER BY created_at ASC
-    """
-    with create_db_connection() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(query, (username, start_time, end_time))
-            return cursor.fetchall()
+class DatabaseManager:
+    @staticmethod
+    def fetch_last_conversation_times(username: str) -> Optional[ConversationTimes]:
+        query = """
+            SELECT start_time, end_time 
+            FROM conversations 
+            WHERE username = %s 
+            AND start_time IS NOT NULL 
+            AND end_time IS NOT NULL 
+            ORDER BY created_at DESC 
+            LIMIT 1
+        """
+        with create_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, (username,))
+                result = cursor.fetchone()
+                if result:
+                    return ConversationTimes(*result)
+                return None
 
-def get_last_conversation(username):
-    """Get the last conversation details for a user."""
-    session_times = fetch_last_conversation_times(username)
-    
-    if session_times:
-        start_time, end_time = session_times
-        results = fetch_last_conversation(username, start_time, end_time)
+    @staticmethod
+    def fetch_conversation_messages(username: str, times: ConversationTimes) -> List[Tuple]:
+        query = """
+            SELECT prompt, response, interaction_count 
+            FROM conversations 
+            WHERE username = %s 
+            AND start_time >= %s 
+            AND end_time <= %s 
+            ORDER BY created_at ASC
+        """
+        with create_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, (username, times.start_time, times.end_time))
+                return cursor.fetchall()
+
+    @staticmethod
+    def log_evaluation(username: str, evaluation: str, times: ConversationTimes) -> None:
+        query = """
+            UPDATE conversations 
+            SET evaluation = %s 
+            WHERE username = %s AND start_time = %s AND end_time = %s
+        """
+        with create_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    query,
+                    (evaluation, username, times.start_time, times.end_time)
+                )
+                conn.commit()
+
+class ConversationFormatter:
+    @staticmethod
+    def format_conversation(messages: List[Tuple]) -> str:
+        formatted_messages = []
+        for prompt, response, _ in messages:
+            user_message = f"User: {prompt}" if prompt else ""
+            bot_message = f"Instructor: {response}" if response else ""
+            if user_message or bot_message:
+                formatted_messages.extend([msg for msg in [user_message, bot_message] if msg])
+        return "\n".join(formatted_messages)
+
+    @staticmethod
+    def format_duration(duration: Optional[datetime]) -> str:
+        if not duration:
+            return "Duration not available"
         
-        last_conversation = [
-            f"You: {prompt}\nGroq LLM: {response}\n" for prompt, response, _ in results
-        ]
+        total_seconds = int(duration.total_seconds())
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
         
-        duration = end_time - start_time if start_time and end_time else None
-        interaction_count = results[-1][2] if results else 0
-        
-        return "\n".join(last_conversation), interaction_count, duration
+        if hours > 0:
+            return f"{hours:02}:{minutes:02}:{seconds:02}"
+        if minutes > 0:
+            return f"{minutes:02}:{seconds:02}"
+        return f"{seconds}s"
 
-    print(f"No evaluation sessions found for username: {username}")
-    return [], 0, None
+class LanguageEvaluator:
+    def __init__(self, client: Any, model: str):
+        self.client = client
+        self.model = model
+        self.db = DatabaseManager()
 
-def log_evaluation_to_db(username, evaluation, start_time, end_time):
-    """Log the evaluation result into the database."""
-    conn = create_db_connection()
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                UPDATE conversations 
-                SET evaluation = %s 
-                WHERE username = %s AND start_time = %s AND end_time = %s
-                """,
-                (evaluation, username, start_time, end_time)
-            )
-            conn.commit()
-    except Exception as e:
-        print(f"Error logging evaluation: {e}")
-
-def format_duration(duration):
-    """Format the duration into a human-readable string."""
-    if duration is None:
-        return "Duration data not available."
-    
-    total_seconds = int(duration.total_seconds())
-    hours, remainder = divmod(total_seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
-
-    return f"{hours:02}:{minutes:02}:{seconds:02}" if hours > 0 else f"{minutes:02}:{seconds:02}" if minutes > 0 else f"{seconds}s"
-
-def evaluate_last_conversation(username, language):
-    """Evaluate the last conversation for a user."""
-    last_conversation, interaction_count, duration = get_last_conversation(username)
-
-    if duration is None:
-        print(f"No valid duration found for user: {username}.")
-        return "No valid duration found.", interaction_count, duration
-
-    formatted_duration = format_duration(duration)
-
-    prompt = (
-        f"Based on the following conversation history, please provide the following metrics for the user's {language} proficiency:\n"
-        "Rate overall score (%), Grammar proficiency (%), Vocabulary usage (%), Communication clarity (%), Logical reasoning (%)\n\n"
-        "Additionally, mention the user's strengths and weaknesses and provide advice for improvement.\n\n"
-        f"{last_conversation}\n\n"
-    )
-
-    try:
-        chat_completion = client.chat.completions.create(
-            messages=[
-                {"role": "system", "content": "You are an expert language evaluator."},
-                {"role": "user", "content": prompt},
-            ],
-            model=MODEL,
+    def create_evaluation_prompt(self, conversation: str, language: str) -> str:
+        return (
+            f"As an expert {language} language evaluator, analyze this conversation "
+            f"and provide detailed metrics:\n\n"
+            f"1. Overall Proficiency Score in % \n"
+            f"2. Grammar Accuracy in %\n"
+            f"3. Vocabulary Range in %\n"
+            f"4. Communication Effectiveness in %\n"
+            f"5. Cultural Understanding in %\n\n"
+            f"Then provide:\n"
+            f"- Key Strengths: List 2-3 main strengths\n"
+            f"- Areas for Improvement: List 2-3 specific areas\n"
+            f"- Actionable Recommendations: Provide 2-3 concrete practice suggestions\n\n"
+            f"Conversation to evaluate:\n{conversation}"
         )
-        response = chat_completion.choices[0].message.content.strip()
+
+    def get_evaluation(self, prompt: str) -> str:
+        try:
+            chat_completion = self.client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": "You are an expert language evaluator focusing on detailed, actionable feedback."},
+                    {"role": "user", "content": prompt}
+                ],
+                model=self.model
+            )
+            return chat_completion.choices[0].message.content.strip()
+        except Exception as e:
+            return f"Evaluation error: {str(e)}"
+
+    def evaluate_conversation(self, username: str, language: str) -> Tuple[str, int, str]:
+        times = self.db.fetch_last_conversation_times(username)
+        if not times:
+            return "No conversation found.", 0, "00:00"
+
+        messages = self.db.fetch_conversation_messages(username, times)
+        if not messages:
+            return "No messages found.", 0, "00:00"
+
+        formatted_conversation = ConversationFormatter.format_conversation(messages)
+        interaction_count = messages[-1][2] if messages else 0
+        duration = times.end_time - times.start_time
+
+        evaluation_prompt = self.create_evaluation_prompt(formatted_conversation, language)
+        evaluation = self.get_evaluation(evaluation_prompt)
+
+        self.db.log_evaluation(username, evaluation, times)
+
+        return (
+            evaluation,
+            interaction_count,
+            ConversationFormatter.format_duration(duration)
+        )
+
+evaluator = LanguageEvaluator(client, MODEL)
+
+def format_duration(duration: Optional[datetime]) -> str:
+    return ConversationFormatter.format_duration(duration)
+
+def get_last_conversation(username: str) -> Tuple[str, int, Optional[datetime]]:
+    db = DatabaseManager()
+    times = db.fetch_last_conversation_times(username)
+    
+    if not times:
+        return "", 0, None
         
-        # Log the evaluation to the database
-        if last_conversation:
-            start_time, end_time = fetch_last_conversation_times(username)
-            log_evaluation_to_db(username, response, start_time, end_time)
-        
-        return response, interaction_count, formatted_duration
-    except Exception as e:
-        return f"Error during LLM evaluation: {e}", interaction_count, duration
+    messages = db.fetch_conversation_messages(username, times)
+    formatted_conversation = ConversationFormatter.format_conversation(messages)
+    interaction_count = messages[-1][2] if messages else 0
+    duration = times.end_time - times.start_time
+    
+    return formatted_conversation, interaction_count, duration
+
+def evaluate_last_conversation(username: str, language: str) -> Tuple[str, int, str]:
+    return evaluator.evaluate_conversation(username, language)
+
+__all__ = [
+    'format_duration',
+    'get_last_conversation',
+    'evaluate_last_conversation',
+    'ConversationFormatter',
+    'DatabaseManager',
+    'LanguageEvaluator'
+]

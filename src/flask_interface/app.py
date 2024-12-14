@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO
 
 from utils.config import Config, initialize_groq_client
+from utils.learning_themes import LEARNING_THEMES
 from utils.database_utils import fetch_progress_data
 from utils.conversation_utils import (
     initialize_conversation,
@@ -16,20 +17,22 @@ client = initialize_groq_client()
 MODEL = Config.MODEL
 app = Flask(__name__, template_folder='templates')
 socketio = SocketIO(app)
+
 conversations = {}
+
 
 @app.route('/start-evaluation', methods=['POST'])
 def start_evaluation():
     data = request.json
-    username, language = data['username'], data['language']
-    conversations[username] = initialize_conversation(language)
+    username, language, theme, emoji = data['username'], data['language'], data['theme'], data['emoji']
+    conversations[username] = initialize_conversation(language, theme, emoji, username)
     return jsonify({'response': conversations[username]['history'][0]['content']})
 
 @app.route('/restart-conversation', methods=['POST'])
 def restart_conversation():
     data = request.json
-    username, language = data['username'], data['language']
-    conversations[username] = restart_conversation_logic(conversations, username, language)
+    username, language, theme, emoji = data['username'], data['language'], data['theme'], data['emoji']
+    conversations[username] = restart_conversation_logic(conversations, username, language, theme, emoji)
     return jsonify({'response': conversations[username]['history'][0]['content']})
 
 @app.route('/chat', methods=['POST'])
@@ -81,11 +84,16 @@ def track_progress():
 
 @app.route('/chat-interface')
 def chat_interface():
-    return render_template('chat_interface.html')
+    username = request.args.get('username')
+    assistant_name = request.args.get('assistantName', 'Default Assistant')
+    language = request.args.get('language')
+    theme = request.args.get('theme')
+    emoji = request.args.get('emoji', '😊')
+    return render_template('chat_interface.html', username=username, assistant_name=assistant_name, language=language, theme=theme, learning_themes=LEARNING_THEMES.keys(), emoji=emoji)
 
 @app.route('/')
 def welcome():
-    return render_template('welcome.html')
+    return render_template('welcome.html', learning_themes=LEARNING_THEMES.keys())
 
 if __name__ == '__main__':
     app.run(debug=True)

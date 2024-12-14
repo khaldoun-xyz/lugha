@@ -30,37 +30,118 @@
                     <label for="username">Enter your name:</label>
                     <input type="text" class="form-control" id="username" placeholder="Your Name" required>
                 </div>
-                <div class="form-group">
-                    <label for="language">Preferred Language:</label>
-                    <select class="form-control" id="language">
-                        <option value="english">English</option>
-                        <option value="french">French</option>
-                        <option value="german">German</option>
-                    </select>
-                </div>
+
                 <div class="button-group">
                     <button id="get-started" class="btn btn-primary">Get Started</button>
                     <button id="track-progress" class="btn btn-secondary">Track Progress</button>
                 </div>
+
+                <div id="additional-features" style="display: none; margin-top: 20px;">
+                    <div class="form-group">
+                        <label for="assistant-name">Assistant Name (Optional):</label>
+                        <div class="assistant-name-container">
+                            <input type="text" class="form-control" id="assistant-name" placeholder="Assistant Name">
+                            <button id="emoji-picker-btn" class="btn btn-secondary">😊 Emoji your Ally! <span class="dropdown-indicator">▼</span></button>
+                        </div>
+                        <div id="emoji-picker" class="emoji-picker" style="display: none;">
+                            <div class="emoji-list">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group form-group-half">
+                            <label for="language">Choose a language:</label>
+                            <select class="form-control dropdown-select" id="language">
+                                <option value="english">English</option>
+                                <option value="french">French</option>
+                                <option value="german">German</option>
+                            </select>
+                        </div>
+                        <div class="form-group form-group-half">
+                            <label for="theme">Preferred Theme:</label>
+                            <select class="form-control dropdown-select" id="theme">
+                                {% for theme in learning_themes %}
+                                <option value="{{ theme }}">{{ theme }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <button id="start-conversation" class="btn btn-success btn-medium">Start Conversation</button>
+                </div>
             </div>
         </div>
     </div>
+
     <script>
-        $(document).ready(function() {
-            $('#get-started').click(function() {
+        $(document).ready(function () {
+            const emojis = ['👏', '👍', '🙌', '💪', '🤘', '✊', '✨', '❤️', '💯', '🎉', '🤩', '🥳', '😊', '😀', '😂', '😅', '😎', '😉', '😜', '😬', '😮', '😳', '🤔', '😒', '😢', '😭', '😱', '👀', '🙏', '💩', '👎', '✌️', '👈', '👆', '✋', '👋', '☀️', '🌙', '💥', '🔥', '🎂', '🍴', '💰', '🥇', '🚨', '💡', '🛠', '📈', '✅', '📢'];
+
+            $('#get-started').click(function () {
+                $('#additional-features').slideDown();
+            });
+
+            $('#track-progress').click(function () {
+                window.location.href = '/track_progress';
+            });
+
+            const $emojiPickerBtn = $('#emoji-picker-btn');
+            const $emojiPicker = $('#emoji-picker');
+            const $emojiList = $('.emoji-list');
+
+            $emojiPickerBtn.click(function(e) {
+                e.stopPropagation();
+                $emojiPicker.toggle();
+                positionEmojiPicker();
+            });
+
+            function positionEmojiPicker() {
+                const btnPos = $emojiPickerBtn.offset();
+                const pickerHeight = $emojiPicker.outerHeight();
+                $emojiPicker.css({
+                    top: btnPos.top - pickerHeight - 5,
+                    left: btnPos.left
+                });
+            }
+
+
+            emojis.forEach(emoji => {
+                $emojiList.append(`<span class="emoji-option">${emoji}</span>`);
+            });
+
+            $(document).on('click', '.emoji-option', function() {
+                const selectedEmoji = $(this).text();
+                $emojiPickerBtn.text(selectedEmoji + ' Emoji your Ally! ▼');
+                $emojiPicker.hide();
+            });
+
+
+            $('#start-conversation').click(function () {
                 const username = $('#username').val();
+                const assistantName = $('#assistant-name').val() || 'Default Assistant';
                 const language = $('#language').val();
-                if (username && language) {
-                    window.location.href = `/chat-interface?username=${encodeURIComponent(username)}&language=${encodeURIComponent(language)}`;
+                const theme = $('#theme').val();
+                const emoji = $emojiPickerBtn.text().trim().split(' ')[0];
+
+                if (username && language && theme) {
+                    window.location.href = `/chat-interface?username=${encodeURIComponent(username)}&assistantName=${encodeURIComponent(assistantName)}&language=${encodeURIComponent(language)}&theme=${encodeURIComponent(theme)}&emoji=${encodeURIComponent(emoji)}`;
                 } else {
-                    alert('Please enter your name and preferred language.');
+                    alert('Please fill in all required fields.');
                 }
             });
 
-            $('#track-progress').click(function() {
-                window.location.href = '/track_progress';
+            $(document).click(function(event) {
+                if (!$(event.target).closest('#emoji-picker-btn, #emoji-picker').length) {
+                    $emojiPicker.hide();
+                }
+            });
+
+            $(window).resize(function() {
+                if ($emojiPicker.is(':visible')) {
+                    positionEmojiPicker();
+                }
             });
         });
     </script>
 </body>
 </html>
+
