@@ -71,7 +71,10 @@ def evaluate():
 @app.route('/fetch-progress', methods=['POST'])
 def fetch_progress():
     username = request.json['username']
-    progress = fetch_progress_data(username)
+    sort_order = request.json.get('sort_order', 'asc') 
+    language_filter = request.json.get('language', 'all') 
+    theme_filter = request.json.get('theme', 'all')
+    progress = fetch_progress_data(username, sort_order, language_filter, theme_filter)
     if progress is None:
         return jsonify({'error': 'Failed to fetch progress data'}), 500
     elif not progress: 
@@ -80,7 +83,7 @@ def fetch_progress():
 
 @app.route('/track_progress')
 def track_progress():
-    return render_template('track_progress.html')
+    return render_template('track_progress.html', learning_themes=LEARNING_THEMES.keys())
 
 @app.route('/chat-interface')
 def chat_interface():

@@ -83,7 +83,6 @@ def process_user_message(
             conversation['emoji']
         )
         
-
         conversation['history'].append({'role': 'user', 'content': user_message})
         conversation['interaction_count'] += 1
 
@@ -102,7 +101,9 @@ def process_user_message(
             response,
             conversation['start_time'],
             datetime.now(),
-            conversation['interaction_count']
+            conversation['interaction_count'],
+            conversation['language'], 
+            conversation['theme']
         )
         
         return response
@@ -120,7 +121,9 @@ def log_end_conversation(conversations: Dict[str, Any], username: str) -> Dict[s
         '',
         conversation['start_time'],
         end_time,
-        conversation['interaction_count']
+        conversation['interaction_count'],
+        conversation['language'],  
+        conversation['theme']
     )
     
     evaluation, _, _ = evaluate_last_conversation(username, conversation['language'])
@@ -130,7 +133,8 @@ def log_end_conversation(conversations: Dict[str, Any], username: str) -> Dict[s
         'total_duration': format_duration(duration),
         'evaluation': evaluation,
         'theme': conversation['theme'],
-        'emoji': conversation['emoji']
+        'emoji': conversation['emoji'],
+        'language': conversation['language'] 
     }
     
     del conversations[username]
