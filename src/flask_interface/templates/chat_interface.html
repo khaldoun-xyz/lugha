@@ -11,70 +11,118 @@
     <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="logo-container">
-            <div class="logo-icon">L</div>
-            <div class="logo-text">Langua</div>
-        </div>
-        <button onclick="window.location.href='/';" class="sidebar-button">
-            <i data-feather="home"></i> Back to Home
+    <div class="layout-wrapper">
+        <aside class="sidebar">
+            <header class="sidebar-header">
+                <div class="logo-container">
+                    <div class="logo-icon">L</div>
+                    <div class="logo-text">Langua</div>
+                </div>
+                <button id="toggle-sidebar" class="toggle-sidebar-button">
+                    <i data-feather="chevron-left"></i>
+                </button>
+            </header>
+            <section class="welcome-message">
+                <h2>Welcome, <span id="user-name">User </span>!</h2>
+                <p>Let's start learning together.</p>
+            </section>
+            <section class="ally-section">
+                <h3>Your Ally</h3>
+                <div class="form-group">
+                    <label for="theme">Learning Theme:</label>
+                    <select class="form-control dropdown-select" id="theme" disabled>
+                        {% for theme in learning_themes %}
+                        <option value="{{ theme }}">{{ theme }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="language-emoji-container">
+                    <div class="form-group language-group">
+                        <label for="language">Language</label>
+                        <select class="form-control" id="language" disabled>
+                            <option value="english">English</option>
+                            <option value="french">French</option>
+                            <option value="german">German</option>
+                        </select>
+                    </div>
+                    <div class="form-group emoji-group">
+                        <label for="emoji-picker-btn">Mood</label>
+                        <button id="emoji-picker-btn" class="form-control" disabled>😊</button>
+                    </div>
+                </div>
+                <div id="emoji-picker" class="emoji-picker" style="display: none;">
+                    <div class="emoji-list"></div>
+                </div>
+                <div class="form-group">
+                    <label>Finish up your chat and then you can customize your Ally!</label>
+                </div>
+            </section>
+            <button id="restart-conversation" class="sidebar-button" style="display:none;">
+                <i data-feather="refresh-cw"></i> Restart Conversation
+            </button>
+            <footer class="sidebar-footer">
+                <button onclick="window.location.href='/';" class="sidebar-button">
+                    <i data-feather="rewind"></i> Reset and Rewind
+                </button>
+            </footer>
+        </aside>
+        <button id="uncollapse-sidebar" class="uncollapse-sidebar-button">
+            <i data-feather="chevron-right"></i>
         </button>
-        <button onclick="window.location.href='/track_progress';" id="track-progress" class="sidebar-button">
-            <i data-feather="bar-chart-2"></i> Track Progress
-        </button>
-        <div class="form-group">
-            <label for="language">Preferred Language</label>
-            <select class="form-control" id="language" disabled>
-                <option value="english">English</option>
-                <option value="french">French</option>
-                <option value="german">German</option>
-            </select>
-            <span id="language-status" class="language-status">Language Selection Enabled</span>
-        </div>
-        <button id="restart-conversation" class="sidebar-button" style="display:none;">
-            <i data-feather="refresh-cw"></i> Restart Conversation
-        </button>
-    </div>
-    <div class="main-content">
-        <div id="chat-interface">
-            <div id="chat-box"></div>
-            <div class="input-group">
-                <input type="text" id="user-message" class="form-control" placeholder="Type your message..." required>
-                <button id="end-conversation" class="btn btn-secondary">End Conversation</button>
+        <main class="main-content">
+            <header class="chat-header">
+                <h1>Chat with Your Language Ally</h1>
+                <p>Ask questions, practice conversations, and improve your language skills!</p>
+            </header>
+            <section id="chat-interface" style="display:none;">
+                <div id="chat-box"></div>
+                <div class="input-group">
+                    <input type="text" id="user-message" class="form-control" placeholder="Type your message..." required>
+                    <button id="send-message" class="btn btn-primary">
+                        <i data-feather="send"></i>
+                    </button>
+                </div>
+                <button id="end-conversation" class="btn btn-secondary">Finish Up, Check Your Language Level!</button>
+            </section>
+            <div id="loading-indicator" style="display:none;">
+                <div class="loading-spinner"></div>
+                <p> Processing your evaluation...</p>
             </div>
-        </div>
-        <div id="loading-indicator" style="display:none;">
-            <div class="loading-spinner"></div>
-        </div>
-        <div class="evaluation-container">
-            <div id="evaluation-message" style="display:none;"></div>
-            <div id="evaluation-result" style="display:none;"></div>
-        </div>
+            <div class="evaluation-container">
+                <div id="evaluation-message" style="display:none;"></div>
+                <div id="evaluation-result" style="display:none;"></div>
+            </div>
+        </main>
     </div>
 
-    <!-- Add the toast notification element -->
-    <div id="toast" class="toast">Language selection is now enabled</div>
+    <div id="toast" class="toast">Option selection is now enabled</div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
             const urlParams = new URLSearchParams(window.location.search);
             const username = urlParams.get('username');
+            const assistantName = urlParams.get('assistantName') || 'Ally'; 
             let language = urlParams.get('language');
-            $('#language').val(language);
+            let theme = urlParams.get('theme');
+            let emoji = urlParams.get('emoji');
+
+            $('#language').val(language).prop('disabled', true);
+            $('#theme').val(theme).prop('disabled', true);
+            $('#emoji-picker-btn').text(emoji).prop('disabled', true);
+            $('#user-name').text(username);
+
             feather.replace();
-    
             $('#chat-interface').show();
             $('#user-message').prop('disabled', false);
-    
+
             $.ajax({
                 url: '/start-evaluation',
                 method: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ username, language }),
+                data: JSON.stringify({ username, language, theme, emoji }),
                 success: function(data) {
                     if (data.response) {
-                        $('#chat-box').append('<div class="message-bubble bot-message"><strong>Groq LLM:</strong> ' + data.response + '</div>');
+                        $('#chat-box').append('<div class="message-bubble bot-message"><strong>' + assistantName + ':</strong> ' + data.response + '</div>');
                     }
                 },
                 error: function(err) {
@@ -82,14 +130,14 @@
                     alert('Error starting evaluation. Please try again.');
                 }
             });
-    
+
             function sendMessage() {
                 const message = $('#user-message').val();
                 if (message) {
                     $('#chat-box').append(`<div class="message-bubble user-message"><strong>${username}:</strong> ${message}</div>`);
                     $('#user-message').val('');
                     $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);
-                    
+
                     $.ajax({
                         url: '/chat',
                         method: 'POST',
@@ -97,7 +145,7 @@
                         data: JSON.stringify({ username, message, language }),
                         success: function(data) {
                             if (data.response) {
-                                $('#chat-box').append(`<div class="message-bubble bot-message"><strong>Groq LLM:</strong> ${data.response}</div>`);
+                                $('#chat-box').append(`<div class="message-bubble bot-message"><strong>${assistantName}:</strong> ${data.response}</div>`);
                                 $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);
                             } else {
                                 console.warn('No response from bot');
@@ -107,17 +155,19 @@
                             console.error(err);
                             alert('Error sending message. Please try again.');
                         }
-                    });
+                    });    
                 }
             }
-    
+
             $('#user-message').keypress(function(event) {
                 if (event.key === 'Enter') {
                     event.preventDefault();
                     sendMessage();
                 }
             });
-    
+
+            $('#send-message').click(sendMessage);
+
             $('#end-conversation').click(function() {
                 $('#loading-indicator').show();
                 $('html, body').animate({
@@ -139,19 +189,17 @@
                             }, 500);
                         }
                         $('#language').prop('disabled', false);
-                        
-                        // Show language status with fade animation
-                        $('#language-status').addClass('show');
-                        
-                        // Show toast notification
-                        $('#toast').addClass('show');
+                        $('#emoji-picker-btn').prop('disabled', false);
+                        $('#theme').prop('disabled', false);
+                        $('#toast').text('Ally customization is now enabled').addClass('show');
                         setTimeout(function() {
                             $('#toast').removeClass('show');
                         }, 3000);
-
+            
                         $('#restart-conversation').show();
                         $('#user-message').prop('disabled', true);
                         $('#end-conversation').prop('disabled', true);
+                        $('.form-group:last-child').hide(); 
                     },
                     error: function(err) {
                         $('#loading-indicator').hide();
@@ -160,28 +208,31 @@
                     }
                 });
             });
-    
+            
             $('#restart-conversation').click(function() {
-                language = $('#language').val();
+                const language = $('#language').val();
+                const theme = $('#theme').val();
+                const emoji = $('#emoji-picker-btn').text();
                 $('#chat-box').empty(); 
                 $('#evaluation-message').hide();
                 $('#evaluation-result').hide();
                 $('#user-message').val('');
                 $('#user-message').prop('disabled', false);
                 $('#end-conversation').prop('disabled', false);
+            
+                $('#language, #theme, #emoji-picker-btn').prop('disabled', true);
                 $('#restart-conversation').hide();
-                $('#language').prop('disabled', true);
-                $('#language-status').hide();
                 $('#chat-interface').show();
-    
+                $('.form-group:last-child').show(); 
+            
                 $.ajax({
                     url: '/restart-conversation',
                     method: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ username, language }), 
+                    data: JSON.stringify({ username, language, theme, emoji }), 
                     success: function(data) {
                         if (data.response) {
-                            $('#chat-box').append('<div class="message-bubble bot-message"><strong>Groq LLM:</strong> ' + data.response + '</div>');
+                            $('#chat-box').append('<div class="message-bubble bot-message"><strong>Ally:</strong> ' + data.response + '</div>');
                             $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);
                         }
                     },
@@ -191,12 +242,44 @@
                     }
                 });
             });
-    
+
             $('#track-progress').click(function() {
                 window.location.href = '/track_progress';
+            });
+
+            const emojis = ['👏', '👍', '🙌', '💪', '🤘', '✊', '✨', '❤️', '💯', '🎉', '🤩', '🥳', '😊', '😀', '😂', '😅', '😎', '😉', '😜', '😬', '😮', '😳', '🤔', '😒', '😢', '😭', '😱', '👀', '🙏', '💩', '👎', '✌️', '👈', '👆', '✋', '👋', '☀️', '🌙', '💥', '🔥', '🎂', '🍴', '💰', '🥇', '🚨', '💡', '🛠', '📈', '✅', '📢'];
+
+            emojis.forEach(emoji => {
+                $('.emoji-list').append(`<span class="emoji-option">${emoji}</span>`);
+            });
+
+            $('#emoji-picker-btn').click(function() {
+                $('#emoji-picker').toggle();
+            });
+
+            $(document).on('click', '.emoji-option', function() {
+                const selectedEmoji = $(this).text();
+                $('#emoji-picker-btn').text(selectedEmoji);
+                $('#emoji-picker').hide();
+            });
+
+            $(document).click(function(event) {
+                if (!$(event.target).closest('#emoji-picker-btn, #emoji-picker').length) {
+                    $('#emoji-picker').hide();
+                }
+            });
+
+            $('#uncollapse-sidebar').click(function() {
+                $('.layout-wrapper').removeClass('sidebar-collapsed');
+                $('#toggle-sidebar').find('i').removeClass('feather-chevron-right').addClass('feather-chevron-left');
+            });
+
+            $('#toggle-sidebar').click(function() {
+                $('.layout-wrapper').toggleClass('sidebar-collapsed');
+                $(this).find('i').toggleClass('feather-chevron-left feather-chevron-right');
+                $('#uncollapse-sidebar').toggle($('.layout-wrapper').hasClass('sidebar-collapsed'));
             });
         });
     </script>
 </body>
 </html>
-

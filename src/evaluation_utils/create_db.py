@@ -10,7 +10,9 @@ CREATE TABLE IF NOT EXISTS conversations (
     start_time TIMESTAMPTZ NOT NULL,
     end_time TIMESTAMPTZ NOT NULL,
     interaction_count INTEGER NOT NULL,
-    duration INTERVAL NOT NULL
+    duration INTERVAL NOT NULL,
+    language VARCHAR(50),
+    theme VARCHAR(50),
 );
 """
 
