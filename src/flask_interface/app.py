@@ -70,10 +70,11 @@ def evaluate():
 
 @app.route('/fetch-progress', methods=['POST'])
 def fetch_progress():
-    username = request.json['username']
-    sort_order = request.json.get('sort_order', 'asc') 
-    language_filter = request.json.get('language', 'all') 
-    theme_filter = request.json.get('theme', 'all')
+    data = request.json
+    username = data.get('username')
+    sort_order = data.get('sort_order', 'asc') 
+    language_filter = data.get('language', 'all') 
+    theme_filter = data.get('theme', 'all')
     progress = fetch_progress_data(username, sort_order, language_filter, theme_filter)
     if progress is None:
         return jsonify({'error': 'Failed to fetch progress data'}), 500

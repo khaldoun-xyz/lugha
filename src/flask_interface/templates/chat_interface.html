@@ -19,7 +19,7 @@
                     <div class="logo-text">Langua</div>
                 </div>
                 <button id="toggle-sidebar" class="toggle-sidebar-button">
-                    <i data-feather="x"></i>
+                    <i data-feather="chevron-left"></i>
                 </button>
             </header>
             <section class="welcome-message">
@@ -53,16 +53,16 @@
                 <div id="emoji-picker" class="emoji-picker" style="display: none;">
                     <div class="emoji-list"></div>
                 </div>
+                <div class="form-group">
+                    <label>Finish up your chat and then you can customize your Ally!</label>
+                </div>
             </section>
             <button id="restart-conversation" class="sidebar-button" style="display:none;">
                 <i data-feather="refresh-cw"></i> Restart Conversation
             </button>
             <footer class="sidebar-footer">
                 <button onclick="window.location.href='/';" class="sidebar-button">
-                    <i data-feather="home"></i> Back to Home
-                </button>
-                <button onclick="window.location.href='/track_progress';" id="track-progress" class="sidebar-button">
-                    <i data-feather="bar-chart-2"></i> Track Progress
+                    <i data-feather="rewind"></i> Reset and Rewind
                 </button>
             </footer>
         </aside>
@@ -195,10 +195,11 @@
                         setTimeout(function() {
                             $('#toast').removeClass('show');
                         }, 3000);
-
+            
                         $('#restart-conversation').show();
                         $('#user-message').prop('disabled', true);
                         $('#end-conversation').prop('disabled', true);
+                        $('.form-group:last-child').hide(); 
                     },
                     error: function(err) {
                         $('#loading-indicator').hide();
@@ -207,22 +208,23 @@
                     }
                 });
             });
-
+            
             $('#restart-conversation').click(function() {
                 const language = $('#language').val();
                 const theme = $('#theme').val();
                 const emoji = $('#emoji-picker-btn').text();
                 $('#chat-box').empty(); 
- $('#evaluation-message').hide();
+                $('#evaluation-message').hide();
                 $('#evaluation-result').hide();
                 $('#user-message').val('');
                 $('#user-message').prop('disabled', false);
                 $('#end-conversation').prop('disabled', false);
-
+            
                 $('#language, #theme, #emoji-picker-btn').prop('disabled', true);
                 $('#restart-conversation').hide();
                 $('#chat-interface').show();
-
+                $('.form-group:last-child').show(); 
+            
                 $.ajax({
                     url: '/restart-conversation',
                     method: 'POST',
