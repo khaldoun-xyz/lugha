@@ -63,8 +63,9 @@
             // Initialize Feather icons
             feather.replace();
             
-            const username = localStorage.getItem('username');
-            
+            const urlParams = new URLSearchParams(window.location.search);
+            const username = urlParams.get('username');
+
             const fetchProgress = (sortOrder, languageFilter, themeFilter) => {
                 $.ajax({
                     url: '/fetch-progress',
@@ -114,16 +115,16 @@
                     }
                 });
             };
-
+        
             fetchProgress('asc', 'all', 'all');
-
+        
             $('#sort-order, #sort-language, #sort-theme').change(function() {
                 const sortOrder = $('#sort-order').val();
                 const languageFilter = $('#sort-language').val();
                 const themeFilter = $('#sort-theme').val();
                 fetchProgress(sortOrder, languageFilter, themeFilter);
             });
-
+        
             $('#back-to-home').click(function() {
                 window.location.href = '/';
             });

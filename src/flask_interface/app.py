@@ -4,7 +4,7 @@ from flask_socketio import SocketIO
 
 from utils.config import Config, initialize_groq_client
 from utils.learning_themes import LEARNING_THEMES
-from utils.database_utils import fetch_progress_data
+from utils.database_utils import fetch_progress_data, fetch_all_users
 from utils.conversation_utils import (
     initialize_conversation,
     restart_conversation_logic,
@@ -98,6 +98,22 @@ def chat_interface():
 @app.route('/')
 def welcome():
     return render_template('welcome.html', learning_themes=LEARNING_THEMES.keys())
+
+@app.route('/admin')
+def admin_page():
+    users = fetch_all_users()  
+    return render_template('admin.html', users=users)
+
+@app.route('/api/conversations/<username>')
+def get_conversations(username):
+    conversations = fetch_progress_data(username)
+    return jsonify(conversations)
+
+@app.route('/api/users')
+def get_users():
+    users = fetch_all_users() 
+    return jsonify(users)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

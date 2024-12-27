@@ -79,3 +79,10 @@ def fetch_progress_data(username, sort_order='asc', language_filter='all', theme
     finally:
         if conn:
             conn.close()
+
+def fetch_all_users():
+    query = "SELECT DISTINCT username FROM conversations"
+    with create_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+            return [row[0] for row in cursor.fetchall()]

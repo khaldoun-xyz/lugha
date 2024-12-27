@@ -291,7 +291,7 @@ body {
     box-shadow: var(--shadow-md);
     margin-left: 7%;
     margin-right: 7%;
-
+    
 }
 
 .chat-header h1 {
@@ -478,11 +478,20 @@ body {
 @media (max-width: 768px) {
     .sidebar {
         transform: translateX(-100%);
-        width: 100%;
+        transition: transform 0.3s ease;
     }
 
     .sidebar.active {
         transform: translateX(0);
+    }
+
+    .sidebar-collapsed .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar-collapsed .main-content {
+        margin-left: 0;
+        width: 100%;
     }
 
     .main-content {
@@ -496,25 +505,32 @@ body {
     }
 
     .chat-header {
-        margin-bottom: var(--spacing-sm);
+        margin-bottom: var(--spacing-xs);
+        padding: var(--spacing-xs);
     }
 
     #chat-interface {
-        padding-top: 60px;
+        padding: var(--spacing-xs); 
     }
 
     #chat-box {
         max-height: calc(100vh - 250px);
+        padding: var(--spacing-xs);
     }
 
     .toggle-sidebar-button {
         right: var(--spacing-sm);
         top: var(--spacing-sm);
+        position: fixed; 
+        z-index: 1100; 
+        display: block;
     }
 
     .uncollapse-sidebar-button {
         top: var(--spacing-sm);
         left: var(--spacing-sm);
+        position: fixed; 
+        z-index: 1100; 
     }
 
     .input-group {
