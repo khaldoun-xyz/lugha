@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="/static/css/chat-interface.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
 </head>
@@ -54,13 +55,19 @@
                     <div class="emoji-list"></div>
                 </div>
                 <div class="form-group">
-                    <label>Finish up your chat and then you can customize your Ally!</label>
+                    <label>
+                        <i class="fas fa-exclamation-triangle" style="color: lightgray; margin-right: 5px;"></i>
+                        Finish up your chat and then you can customize your Ally!
+                    </label>
                 </div>
             </section>
             <button id="restart-conversation" class="sidebar-button" style="display:none;">
                 <i data-feather="refresh-cw"></i> Restart Conversation
             </button>
             <footer class="sidebar-footer">
+                <button onclick="window.location.href='/track_progress';" id="track-progress" class="sidebar-button">
+                    <i data-feather="bar-chart-2"></i> Track Progress
+                </button>
                 <button onclick="window.location.href='/';" class="sidebar-button">
                     <i data-feather="rewind"></i> Reset and Rewind
                 </button>
@@ -195,11 +202,11 @@
                         setTimeout(function() {
                             $('#toast').removeClass('show');
                         }, 3000);
-            
+
+                        $('.form-group:has(label:contains("Finish up your chat and then you can customize your Ally!"))').hide();
                         $('#restart-conversation').show();
                         $('#user-message').prop('disabled', true);
                         $('#end-conversation').prop('disabled', true);
-                        $('.form-group:last-child').hide(); 
                     },
                     error: function(err) {
                         $('#loading-indicator').hide();
@@ -224,7 +231,7 @@
                 $('#restart-conversation').hide();
                 $('#chat-interface').show();
                 $('.form-group:last-child').show(); 
-            
+
                 $.ajax({
                     url: '/restart-conversation',
                     method: 'POST',
@@ -244,7 +251,8 @@
             });
 
             $('#track-progress').click(function() {
-                window.location.href = '/track_progress';
+                const username = urlParams.get('username');
+                window.location.href = `/track_progress?username=${encodeURIComponent(username)}`;
             });
 
             const emojis = ['👏', '👍', '🙌', '💪', '🤘', '✊', '✨', '❤️', '💯', '🎉', '🤩', '🥳', '😊', '😀', '😂', '😅', '😎', '😉', '😜', '😬', '😮', '😳', '🤔', '😒', '😢', '😭', '😱', '👀', '🙏', '💩', '👎', '✌️', '👈', '👆', '✋', '👋', '☀️', '🌙', '💥', '🔥', '🎂', '🍴', '💰', '🥇', '🚨', '💡', '🛠', '📈', '✅', '📢'];
@@ -278,6 +286,21 @@
                 $('.layout-wrapper').toggleClass('sidebar-collapsed');
                 $(this).find('i').toggleClass('feather-chevron-left feather-chevron-right');
                 $('#uncollapse-sidebar').toggle($('.layout-wrapper').hasClass('sidebar-collapsed'));
+            });
+        
+            $('#uncollapse-sidebar').click(function() {
+                $('.layout-wrapper').removeClass('sidebar-collapsed');
+                $('#toggle-sidebar').find('i').removeClass('feather-chevron-right').addClass('feather-chevron-left');
+            });
+        
+
+            if ($(window).width() <= 768) {
+                $('.layout-wrapper').addClass('sidebar-collapsed');
+            }
+            $(window).resize(function() {
+                if ($(window).width() > 768) {
+                    $('.layout-wrapper').removeClass('sidebar-collapsed');
+                }
             });
         });
     </script>

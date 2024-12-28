@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Conversation History</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <div class="logo-icon">L</div>
+            <div class="logo-text">Langua</div>
+        </div>
+        <h1 class="welcome-title">Admin <span>Panel</span></h1>
+        <p class="welcome-subtitle">View User Conversation History</p>
+        
+        <div class="form-container">
+            <div class="form-group">
+                <label for="user-select">Select User:</label>
+                <select id="user-select" class="form-control dropdown-select">
+                    <option value="">-- Select User --</option>
+                    {% for user in users %}
+                    <option value="{{ user }}">{{ user }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div id="loading-indicator" style="display: none;">Loading...</div>
+        <div id="conversation-history" class="progress-container" style="margin-top: 20px;"></div>
+        
+        <div class="message-description">
+            <div class="button-group">
+                <button id="back-to-home" class="btn btn-primary">
+                    <i data-feather="rewind"></i> Reset and Rewind
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#user-select').change(function() {
+                const username = $(this).val();
+                if (username) {
+                    $('#loading-indicator').show();  
+                    $.ajax({
+                        url: `/api/conversations/${username}`,
+                        method: 'GET',
+                        success: function(data) {
+                            $('#loading-indicator').hide(); 
+                            $('#conversation-history').empty();
+                            if (data.length > 0) {
+                                data.forEach(convo => {
+                                    const formattedEvaluation = convo.evaluation
+                                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                        .replace(/\n/g, '<br>');
+                                    
+                                    $('#conversation-history').append(`
+                                        <div class="progress-item">
+                                            <div class="progress-item-header">
+                                                <strong><i data-feather="calendar"></i> ${convo.date}</strong>
+                                                <span><i data-feather="globe"></i> ${convo.language} | <i data-feather="bookmark"></i> ${convo.theme}</span>
+                                            </div>
+                                            <div class="progress-item-body">
+                                                <p><strong><i data-feather="clock"></i> Duration:</strong> ${convo.duration}</p>
+                                                <p><strong><i data-feather="message-circle"></i> Interactions:</strong> ${convo.interaction_count}</p>
+                                                <div class="evaluation-section">
+                                                    <strong><i data-feather="check-circle"></i> Evaluation:</strong>
+                                                    <div class="evaluation-content">${formattedEvaluation}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `);
+                                });
+                            } else {
+                                $('#conversation-history').append(`
+                                    <div class="no-data">
+                                        <i data-feather="inbox"></i>
+                                        <p>No conversation history available for this user.</p>
+                                    </div>
+                                `);
+                            }
+                            feather.replace();  
+                        },
+                        error: function(err) {
+                            $('#loading-indicator').hide(); 
+                            console.error(err);
+                            alert('Error fetching conversation history. Please try again.');
+                        }
+                    });
+                } else {
+                    $('#conversation-history').empty();
+                }
+            });
+
+            $('#back-to-home').click(function() {
+                window.location.href = '/';
+            });
+        });
+    </script>
+</body>
+</html>

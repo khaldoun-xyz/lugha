@@ -34,6 +34,7 @@
 
                 <div class="button-group">
                     <button id="get-started" class="btn btn-primary"><i data-feather="play"></i> Get Started</button>
+                    <button id="track-progress" class="btn btn-secondary"><i data-feather="bar-chart-2"></i> Track Progress</button>
                 </div>
 
                 <div id="additional-features" style="display: none; margin-top: 20px;">
@@ -82,9 +83,13 @@
             });
 
             $('#track-progress').click(function () {
-                window.location.href = '/track_progress';
+                const username = $('#username').val();
+                if (username) {
+                    window.location.href = `/track_progress?username=${encodeURIComponent(username)}`;
+                } else {
+                    alert('Please enter your name before tracking progress.');
+                }
             });
-
             const $emojiPickerBtn = $('#emoji-picker-btn');
             const $emojiPicker = $('#emoji-picker');
             const $emojiList = $('.emoji-list');
