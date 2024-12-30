@@ -103,16 +103,18 @@ class LanguageEvaluator:
     def create_evaluation_prompt(self, conversation: str, language: str) -> str:
         return (
             f"As an expert {language} language evaluator, analyze this conversation "
-            f"and provide detailed metrics:\n\n"
-            f"1. Overall Proficiency Score in % \n"
-            f"2. Grammar Accuracy in %\n"
-            f"3. Vocabulary Range in %\n"
-            f"4. Communication Effectiveness in %\n"
-            f"5. Cultural Understanding in %\n\n"
-            f"Then provide:\n"
-            f"- Key Strengths: List 2-3 main strengths\n"
-            f"- Areas for Improvement: List 2-3 specific areas\n"
-            f"- Actionable Recommendations: Provide 2-3 concrete practice suggestions\n\n"
+            f"and provide:\n\n"
+            f"1. Brief Proficiency Overview:\n"
+            f"- Overall Score: __%%\n"
+            f"Grammar Accuracy: __ %%\n"
+            f"- Communication Effectiveness: __%%\n\n"
+            f"2. Top 3-5 Specific Mistakes Found:\n"
+            f"For each mistake, provide:\n"
+            f"- Original phrase/sentence\n"
+            f"- Error type (grammar/vocabulary/usage)\n"
+            f"- Correction with brief explanation\n\n"
+            f"3. Quick Improvement Tips:\n"
+            f"- Two focused practice suggestions\n\n"
             f"Conversation to evaluate:\n{conversation}"
         )
 
