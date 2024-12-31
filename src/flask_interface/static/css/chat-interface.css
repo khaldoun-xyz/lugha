@@ -148,58 +148,6 @@ body {
     flex: 2;
 }
 
-.emoji-group {
-    flex: 1;
-}
-
-#emoji-picker-btn {
-    width: 100%;
-    text-align: center;
-    font-size: 1.5rem;
-    padding: var(--spacing-xs) var(--spacing-sm);
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.emoji-picker {
-    position: absolute;
-    top: calc(50% - 100px);
-    left: 20px;
-    width: 240px;
-    z-index: 1200;
-    background: var(--dark-surface);
-    border: 1px solid var(--dark-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-}
-
-.emoji-list {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: var(--spacing-xs);
-    max-height: 150px;
-    width:300px;
-    overflow-y: auto;
-    padding: var(--spacing-xs);
-}
-
-.emoji-option {
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: var(--transition-all);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    border-radius: var(--radius-md);
-}
-
-.emoji-option:hover {
-    background-color: var(--dark-surface-lighter);
-}
 
 .sidebar-button {
     background: var(--dark-surface-lighter);

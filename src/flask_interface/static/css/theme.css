@@ -313,17 +313,8 @@ body {
     width: 100%;
   }
 
-  .emoji-picker {
-    width: 100%;
-  }
 
-  .emoji-list {
-    grid-template-columns: repeat(6, 1fr);
-  }
 
-  .assistant-name-container {
-    flex-direction: column;
-  }
 
   .form-row {
     flex-direction: column;
@@ -346,65 +337,6 @@ body {
   }
 }
 
-#emoji-picker-btn {
-  width: 100%;
-  text-align: left;
-  margin-bottom: var(--spacing-sm);
-  white-space: nowrap;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.emoji-picker {
-  position: absolute;
-  background: var(--dark-surface-lighter);
-  border: 1px solid var(--dark-border);
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  padding: var(--spacing-sm);
-  width: 300px;
-  max-height: 200px; 
-  overflow-y: auto;
-  z-index: 1000;
-  top: 100%;
-  left: 0;
-}
-
-.emoji-list {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: var(--spacing-xs);
-}
-
-.emoji-option {
-  font-size: 1.5rem;
-  cursor: pointer;
-  transition: var(--transition-all);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-sm);
-}
-
-.emoji-option:hover {
-  background-color: var(--dark-surface);
-}
-
-.emoji-picker::-webkit-scrollbar {
-  width: 8px;
-}
-
-.emoji-picker::-webkit-scrollbar-track {
-  background: var(--dark-surface);
-}
-
-.emoji-picker::-webkit-scrollbar-thumb {
-  background-color: var(--dark-border);
-  border-radius: 4px;
-}
 
 #start-conversation {
   background: var(--dark-primary);
