@@ -24,7 +24,7 @@
                 </button>
             </header>
             <section class="welcome-message">
-                <h2>Welcome, <span id="user-name">User  </span>!</h2>
+                <h2>Welcome, <span id="user-name">User </span>!</h2>
                 <p>Let's start learning together.</p>
             </section>
             <section class="ally-section">
@@ -44,15 +44,12 @@
                             <option value="english">English</option>
                             <option value="french">French</option>
                             <option value="german">German</option>
+                            <option value="italian">Italian</option>
+                            <option value="spanish">Spanish</option>
+                            <option value="swedish">Swedish</option>
+                            </select>
                         </select>
                     </div>
-                    <div class="form-group emoji-group">
-                        <label for="emoji-picker-btn">Mood</label>
-                        <button id="emoji-picker-btn" class="form-control" disabled>😊</button>
-                    </div>
-                </div>
-                <div id="emoji-picker" class="emoji-picker" style="display: none;">
-                    <div class="emoji-list"></div>
                 </div>
                 <div class="form-group">
                     <label>
@@ -97,7 +94,7 @@
             </div>
             <div class="evaluation-container">
                 <div id="evaluation-message" style="display:none;"></div>
-                <div id="evaluation-result" style="display:none;"></div>
+                <div id="evaluation-result" style=" display:none;"></div>
             </div>
         </main>
     </div>
@@ -111,11 +108,9 @@
             const Lugha = 'Lugha'; 
             let language = urlParams.get('language');
             let theme = urlParams.get('theme');
-            let emoji = urlParams.get('emoji');
 
             $('#language').val(language).prop('disabled', true);
             $('#theme').val(theme).prop('disabled', true);
-            $('#emoji-picker-btn').text(emoji).prop('disabled', true);
             $('#user-name').text(username);
 
             feather.replace();
@@ -126,7 +121,7 @@
                 url: '/start-evaluation',
                 method: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ username, language, theme, emoji }),
+                data: JSON.stringify({ username, language, theme }),
                 success: function(data) {
                     if (data.response) {
                         $('#chat-box').append('<div class="message-bubble bot-message"><strong>' + Lugha + ':</strong> ' + data.response + '</div>');
@@ -196,8 +191,6 @@
                             }, 500);
                         }
                         $('#language').prop('disabled', false);
-                        $('#emoji-picker-btn').prop('disabled', false);
-                        $('#theme').prop('disabled', false);
                         $('#toast').text('Ally customization is now enabled').addClass('show');
                         setTimeout(function() {
                             $('#toast').removeClass('show');
@@ -219,7 +212,6 @@
             $('#restart-conversation').click(function() {
                 const language = $('#language').val();
                 const theme = $('#theme').val();
-                const emoji = $('#emoji-picker-btn').text();
                 $('#chat-box').empty(); 
                 $('#evaluation-message').hide();
                 $('#evaluation-result').hide();
@@ -227,7 +219,7 @@
                 $('#user-message').prop('disabled', false);
                 $('#end-conversation').prop('disabled', false);
             
-                $('#language, #theme, #emoji-picker-btn').prop('disabled', true);
+                $('#language, #theme').prop('disabled', true);
                 $('#restart-conversation').hide();
                 $('#chat-interface').show();
                 $('.form-group:last-child').show(); 
@@ -236,7 +228,7 @@
                     url: '/restart-conversation',
                     method: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ username, language, theme, emoji }), 
+                    data: JSON.stringify({ username, language, theme }), 
                     success: function(data) {
                         if (data.response) {
                             $('#chat-box').append('<div class="message-bubble bot-message"><strong>' + Lugha + ':</strong> ' + data.response + '</div>');
@@ -253,28 +245,6 @@
             $('#track-progress').click(function() {
                 const username = urlParams.get('username');
                 window.location.href = `/track_progress?username=${encodeURIComponent(username)}`;
-            });
-
-            const emojis = ['👏', '👍', '🙌', '💪', '🤘', '✊', '✨', '❤️', '💯', '🎉', '🤩', '🥳', '😊', '😀', '😂', '😅', '😎', '😉', '😜', '😬', '😮', '😳', '🤔', '😒', '😢', '😭', '😱', '👀', '🙏', '💩', '👎', '✌️', '👈', '👆', '✋', '👋', '☀️', '🌙', '💥', '🔥', '🎂', '🍴', '💰', '🥇', '🚨', '💡', '🛠', '📈', '✅', '📢'];
-
-            emojis.forEach(emoji => {
-                $('.emoji-list').append(`<span class="emoji-option">${emoji}</span>`);
-            });
-
-            $('#emoji-picker-btn').click(function() {
-                $('#emoji-picker').toggle();
-            });
-
-            $(document).on('click', '.emoji-option', function() {
-                const selectedEmoji = $(this).text();
-                $('#emoji-picker-btn').text(selectedEmoji);
-                $('#emoji-picker').hide();
-            });
-
-            $(document).click(function(event) {
-                if (!$(event.target).closest('#emoji-picker-btn, #emoji-picker').length) {
-                    $('#emoji-picker').hide();
-                }
             });
 
             $('#uncollapse-sidebar').click(function() {

@@ -28,19 +28,18 @@ def get_groq_response(conversation_history: List[Dict[str, str]]) -> str:
     except Exception as e:
         return f"Error: {e}"
 
-def create_system_prompt(language: str, username: str, theme: str, emoji: str) -> str:
+def create_system_prompt(language: str, username: str, theme: str) -> str:
     return (
         f"In my role as a certified {language} language instructor, I will communicate "
         f"exclusively in {language} with {username}, maintaining natural conversation patterns "
         f"and incorporating the theme of {theme}. Responses will be limited to 50 words and "
-        f"may include the '{emoji}' emoji when contextually appropriate."
     )
 
-def initialize_conversation(language: str, theme: str, emoji: str, username: str) -> Dict[str, Any]:
+def initialize_conversation(language: str, theme: str, username: str) -> Dict[str, Any]:
     welcome_prompt = (
         f"Compose a warm and inviting message to welcome {username} to a relaxed chat "
         f"about {theme}. As a language learning coach, use only {language} to provide "
-        f"guidance and encouragement. Include the '{emoji}' emoji and limit your response "
+        f"guidance and encouragement. Limit your response "
         f"to 50 words or less."
     )
     welcome_message = get_groq_response([{"role": "user", "content": welcome_prompt}])
@@ -52,7 +51,6 @@ def initialize_conversation(language: str, theme: str, emoji: str, username: str
         'logging_enabled': True,
         'language': language,
         'theme': theme,
-        'emoji': emoji,
         'username': username
     }
 
@@ -61,11 +59,10 @@ def restart_conversation_logic(
     username: str,
     language: str,
     theme: str,
-    emoji: str,
 ) -> Dict[str, Any]:
     if username in conversations:
         del conversations[username]
-    return initialize_conversation(language, theme, emoji, username)
+    return initialize_conversation(language, theme, username)
 
 def process_user_message(
     conversations: Dict[str, Any],
@@ -79,8 +76,7 @@ def process_user_message(
         system_prompt = create_system_prompt(
             conversation['language'].lower(),
             username,
-            conversation['theme'],
-            conversation['emoji']
+            conversation['theme']
         )
         
         conversation['history'].append({'role': 'user', 'content': user_message})
@@ -133,7 +129,6 @@ def log_end_conversation(conversations: Dict[str, Any], username: str) -> Dict[s
         'total_duration': format_duration(duration),
         'evaluation': evaluation,
         'theme': conversation['theme'],
-        'emoji': conversation['emoji'],
         'language': conversation['language'] 
     }
     

@@ -24,15 +24,15 @@ conversations = {}
 @app.route('/start-evaluation', methods=['POST'])
 def start_evaluation():
     data = request.json
-    username, language, theme, emoji = data['username'], data['language'], data['theme'], data['emoji']
-    conversations[username] = initialize_conversation(language, theme, emoji, username)
+    username, language, theme= data['username'], data['language'], data['theme']
+    conversations[username] = initialize_conversation(language, theme,  username)
     return jsonify({'response': conversations[username]['history'][0]['content']})
 
 @app.route('/restart-conversation', methods=['POST'])
 def restart_conversation():
     data = request.json
-    username, language, theme, emoji = data['username'], data['language'], data['theme'], data['emoji']
-    conversations[username] = restart_conversation_logic(conversations, username, language, theme, emoji)
+    username, language, theme = data['username'], data['language'], data['theme']
+    conversations[username] = restart_conversation_logic(conversations, username, language, theme)
     return jsonify({'response': conversations[username]['history'][0]['content']})
 
 @app.route('/chat', methods=['POST'])
@@ -89,11 +89,9 @@ def track_progress():
 @app.route('/chat-interface')
 def chat_interface():
     username = request.args.get('username')
-    assistant_name = request.args.get('assistantName', 'Default Assistant')
     language = request.args.get('language')
     theme = request.args.get('theme')
-    emoji = request.args.get('emoji', '😊')
-    return render_template('chat_interface.html', username=username, assistant_name=assistant_name, language=language, theme=theme, learning_themes=LEARNING_THEMES.keys(), emoji=emoji)
+    return render_template('chat_interface.html', username=username, language=language, theme=theme, learning_themes=LEARNING_THEMES.keys())
 
 @app.route('/')
 def welcome():
