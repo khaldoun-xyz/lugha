@@ -1,71 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Lugha - Your AI Language Coach</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
-</head>
-<body>
-    <div class="welcome-container">
-        <div class="welcome-card">
-            <div class="logo-container">
-                <div class="logo-icon">L</div>
-                <div class="logo-text">Lugha</div>
-            </div>
-            <h1 class="welcome-title">Welcome to <span>Lugha</span></h1>
-            <p class="welcome-subtitle">Your AI-powered Language Coach</p>
-            <div class="message-card">
-                <h2 class="message-title"><i data-feather="message-square"></i> Build your tailored language coach 'Ally'</h2>
-                <p class="message-description">
-                    Elevate your language skills with an AI-powered coach designed just for you.
-                    Engage in real-time conversations, practice fluency, and unlock your full potential
-                    faster than ever.
-                </p>
-            </div>
-            <div class="form-container">
-                <div class="form-group">
-                    <label for="username"><i data-feather="user"></i> Enter your name:</label>
-                    <input type="text" class="form-control" id="username" placeholder="Your Name" required>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description"
+              content="Lugha - Evaluate your language competence with ease.">
+        <meta name="keywords"
+              content="language evaluation, language competence, learning themes, multilingual platform">
+        <title>Lugha - Language Competence Evaluation</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+              rel="stylesheet">
+        <link rel="stylesheet" href="{{ url_for.css }}">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://unpkg.com/feather-icons"></script>
+        <style> #additional-features {
+                display: none;
+                margin-top: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="welcome-container">
+            <div class="welcome-card">
+                <div class="logo-container">
+                    <div class="logo-icon">L</div>
+                    <div class="logo-text">Lugha</div>
                 </div>
-
-                <div class="button-group">
-                    <button id="get-started" class="btn btn-primary"><i data-feather="play"></i> Get Started</button>
-                    <button id="track-progress" class="btn btn-secondary"><i data-feather="bar-chart-2"></i> Track Progress</button>
-                </div>
-
-                <div id="additional-features" style="display: none; margin-top: 20px;">
-                    <div class="form-row">
-                        <div class="form-group form-group-half">
-                            <label for="language"><i data-feather="globe"></i> Choose a language:</label>
-                            <select class="form-control dropdown-select" id="language">
-                                <option value="english">English</option>
-                                <option value="french">French</option>
-                                <option value="german">German</option>
-                                <option value="italian">Italian</option>
-                                <option value="spanish">Spanish</option>
-                                <option value="swedish">Swedish</option>
-                            </select>
-                        </div>
-                        <div class="form-group form-group-half">
-                            <label for="theme"><i data-feather="bookmark"></i> Preferred Theme:</label>
-                            <select class="form-control dropdown-select" id="theme">
-                                {% for theme in learning_themes %}
-                                <option value="{{ theme }}">{{ theme }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                <h1 class="welcome-title">
+                    Evaluate your <span>language</span>
+                    <br>
+                    competence
+                </h1>
+                <div class="form-container">
+                    <div class="form-group">
+                        <label for="username">
+                            <i data-feather="user"></i> Enter your name:
+                        </label>
+                        <input type="text"
+                               class="form-control"
+                               id="username"
+                               placeholder="Your Name"
+                               required>
                     </div>
-                    <button id="start-conversation" class="btn btn-success btn-medium"><i data-feather="message-circle"></i> Start Conversation</button>
+                    <div class="button-group">
+                        <button id="get-started" class="btn btn-primary">
+                            <i data-feather="play"></i>
+                            Get Started
+                        </button>
+                        <button id="track-progress" class="btn btn-secondary">
+                            <i data-feather="bar-chart-2"></i>
+                            Track Progress
+                        </button>
+                    </div>
+                    <div id="additional-features" class="hidden">
+                        <div class="form-row">
+                            <div class="form-group form-group-half">
+                                <label for="language">
+                                    <i data-feather="globe"></i> Choose a language:
+                                </label>
+                                <select class="form-control dropdown-select" id="language">
+                                    <option value="english">English</option>
+                                    <option value="french">French</option>
+                                    <option value="german">German</option>
+                                    <option value="italian">Italian</option>
+                                    <option value="spanish">Spanish</option>
+                                    <option value="swedish">Swedish</option>
+                                </select>
+                            </div>
+                            <div class="form-group form-group-half">
+                                <label for="theme">
+                                    <i data-feather="bookmark"></i> Preferred Theme:
+                                </label>
+                                <select class="form-control dropdown-select" id="theme">
+                                    {% for theme in learning_themes %}<option value="{{ theme }}">{{ theme }}</option>{% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <button id="start-conversation" class="btn">
+                            <i data-feather="message-circle"></i>
+                            Start Conversation
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <script>
+        <script>
         $(document).ready(function () {
             feather.replace();
 
@@ -94,6 +113,6 @@
                 }
             });
         });
-    </script>
-</body>
+        </script>
+    </body>
 </html>

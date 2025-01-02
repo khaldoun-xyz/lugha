@@ -2,6 +2,10 @@
 
 ----
 
+Install pre-commit hook
+- run `pre-commit install`
+----
+
 # how to get going on your laptop
 - create a .env file and provide relevant parameters
 - create a virtualenv or conda environment using the requirements.txt file & activate it
@@ -12,4 +16,3 @@
 # build & run docker
 - `docker build -t groq .`
 - `docker run -p 5000:5000 --env-file .env groq`
-
