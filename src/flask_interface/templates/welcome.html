@@ -3,12 +3,15 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="Lugha - Language Competence Evaluation">
-        <meta name="keywords" content="language, evaluation, competence, Lugha">
+        <meta name="description"
+              content="Lugha - Evaluate and improve your language competence through interactive conversations">
+        <meta name="keywords"
+              content="language learning, language evaluation, language competence, language assessment, online learning">
         <title>Lugha - Language Competence Evaluation</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
               rel="stylesheet">
-        <link rel="stylesheet" href="{{ url_for.css }}">
+        <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/theme.css') }}">
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://unpkg.com/feather-icons"></script>
     </head>
@@ -45,7 +48,7 @@
                             Track Progress
                         </button>
                     </div>
-                    <div id="additional-features" class="additional-features">
+                    <div id="additional-features" style="display: none; margin-top: 20px;">
                         <div class="form-row">
                             <div class="form-group form-group-half">
                                 <label for="language">
@@ -78,34 +81,34 @@
             </div>
         </div>
         <script>
-            $(document).ready(function () {
-                feather.replace();
+        $(document).ready(function () {
+            feather.replace();
 
-                $('#get-started').click(function () {
-                    $('#additional-features').slideDown();
-                });
-
-                $('#track-progress').click(function () {
-                    const username = $('#username').val();
-                    if (username) {
-                        window.location.href = `/track_progress?username=${encodeURIComponent(username)}`;
-                    } else {
-                        alert('Please enter your name before tracking progress.');
-                    }
-                });
-
-                $('#start-conversation').click(function () {
-                    const username = $('#username').val();
-                    const language = $('#language').val();
-                    const theme = $('#theme').val();
-
-                    if (username && language && theme) {
-                        window.location.href = `/chat-interface?username=${encodeURIComponent(username)}&language=${encodeURIComponent(language)}&theme=${encodeURIComponent(theme)}`;
-                    } else {
-                        alert('Please fill in all required fields.');
-                    }
-                });
+            $('#get-started').click(function () {
+                $('#additional-features').slideDown();
             });
+
+            $('#track-progress').click(function () {
+                const username = $('#username').val();
+                if (username) {
+                    window.location.href = `/track_progress?username=${encodeURIComponent(username)}`;
+                } else {
+                    alert('Please enter your name before tracking progress.');
+                }
+            });
+
+            $('#start-conversation').click(function () {
+                const username = $('#username').val();
+                const language = $('#language').val();
+                const theme = $('#theme').val();
+
+                if (username && language && theme) {
+                    window.location.href = `/chat-interface?username=${encodeURIComponent(username)}&language=${encodeURIComponent(language)}&theme=${encodeURIComponent(theme)}`;
+                } else {
+                    alert('Please fill in all required fields.');
+                }
+            });
+        });
         </script>
     </body>
 </html>
