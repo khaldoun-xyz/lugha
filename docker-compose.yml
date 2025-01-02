@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  lugha:
+    build: .
+    command: gunicorn -b 0.0.0.0:8000 flask_interface.app:app
+    volumes:
+      - ./src:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+
+  nginx: 
+    image: nginx:latest
+    privileged: true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./html:/var/www/html
+      - /etc/letsencrypt:/etc/letsencrypt
+    depends_on:
+      - lugha
+
+volumes:
+  static_volume:
