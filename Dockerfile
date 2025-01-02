@@ -17,8 +17,8 @@ ENV GROQ_API_KEY=$GROQ_API_KEY
 ENV FLASK_APP=flask_interface.app
 ENV FLASK_RUN_HOST=0.0.0.0
 
-EXPOSE 80
+EXPOSE 8000
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
-CMD ["gunicorn", "-b", "0.0.0.0:80", "flask_interface.app:app"]
+CMD exec gunicorn -b 0.0.0.0:8000 flask_interface.app:app

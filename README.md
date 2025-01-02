@@ -13,4 +13,4 @@
 # build & run docker
 
 - `docker build -t lugha .`
-- `docker run -d -p 80:80 --env-file .env lugha`
+- `docker-compose up --build -d`
