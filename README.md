@@ -2,6 +2,10 @@
 
 ----
 
+Install pre-commit hook
+- run `pre-commit install`
+----
+
 # how to get going on your laptop
 
 - create a .env file and provide relevant parameters
