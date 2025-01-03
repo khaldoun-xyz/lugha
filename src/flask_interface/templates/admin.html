@@ -16,7 +16,7 @@
         </div>
         <h1 class="welcome-title">Admin <span>Panel</span></h1>
         <p class="welcome-subtitle">View User Conversation History</p>
-        
+
         <div class="form-container">
             <div class="form-group">
                 <label for="user-select">Select User:</label>
@@ -31,7 +31,7 @@
 
         <div id="loading-indicator" style="display: none;">Loading...</div>
         <div id="conversation-history" class="progress-container" style="margin-top: 20px;"></div>
-        
+
         <div class="message-description">
             <div class="button-group">
                 <button id="back-to-home" class="btn btn-primary">
@@ -46,12 +46,12 @@
             $('#user-select').change(function() {
                 const username = $(this).val();
                 if (username) {
-                    $('#loading-indicator').show();  
+                    $('#loading-indicator').show();
                     $.ajax({
                         url: `/api/conversations/${username}`,
                         method: 'GET',
                         success: function(data) {
-                            $('#loading-indicator').hide(); 
+                            $('#loading-indicator').hide();
                             $('#conversation-history').empty();
                             if (data.length > 0) {
                                 data.forEach(convo => {
@@ -59,7 +59,7 @@
                                         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                                         .replace(/\*(.*?)\*/g, '<em>$1</em>')
                                         .replace(/\n/g, '<br>');
-                                    
+
                                     $('#conversation-history').append(`
                                         <div class="progress-item">
                                             <div class="progress-item-header">
@@ -85,10 +85,10 @@
                                     </div>
                                 `);
                             }
-                            feather.replace();  
+                            feather.replace();
                         },
                         error: function(err) {
-                            $('#loading-indicator').hide(); 
+                            $('#loading-indicator').hide();
                             console.error(err);
                             alert('Error fetching conversation history. Please try again.');
                         }

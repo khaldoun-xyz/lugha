@@ -105,7 +105,7 @@
         $(document).ready(function() {
             const urlParams = new URLSearchParams(window.location.search);
             const username = urlParams.get('username');
-            const Lugha = 'Lugha'; 
+            const Lugha = 'Lugha';
             let language = urlParams.get('language');
             let theme = urlParams.get('theme');
 
@@ -157,7 +157,7 @@
                             console.error(err);
                             alert('Error sending message. Please try again.');
                         }
-                    });    
+                    });
                 }
             }
 
@@ -185,7 +185,7 @@
                         $('#evaluation-message').text(`You interacted ${data.interaction_count} times over a duration of ${data.total_duration} seconds.`).show();
                         if (data.evaluation) {
                             $('#evaluation-result').html('<strong>Evaluation Result:</strong><br>' + data.evaluation.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>')).show();
-                            
+
                             $('html, body').animate({
                                 scrollTop: $('#evaluation-result').offset().top
                             }, 500);
@@ -208,27 +208,27 @@
                     }
                 });
             });
-            
+
             $('#restart-conversation').click(function() {
                 const language = $('#language').val();
                 const theme = $('#theme').val();
-                $('#chat-box').empty(); 
+                $('#chat-box').empty();
                 $('#evaluation-message').hide();
                 $('#evaluation-result').hide();
                 $('#user-message').val('');
                 $('#user-message').prop('disabled', false);
                 $('#end-conversation').prop('disabled', false);
-            
+
                 $('#language, #theme').prop('disabled', true);
                 $('#restart-conversation').hide();
                 $('#chat-interface').show();
-                $('.form-group:last-child').show(); 
+                $('.form-group:last-child').show();
 
                 $.ajax({
                     url: '/restart-conversation',
                     method: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ username, language, theme }), 
+                    data: JSON.stringify({ username, language, theme }),
                     success: function(data) {
                         if (data.response) {
                             $('#chat-box').append('<div class="message-bubble bot-message"><strong>' + Lugha + ':</strong> ' + data.response + '</div>');
@@ -257,12 +257,12 @@
                 $(this).find('i').toggleClass('feather-chevron-left feather-chevron-right');
                 $('#uncollapse-sidebar').toggle($('.layout-wrapper').hasClass('sidebar-collapsed'));
             });
-        
+
             $('#uncollapse-sidebar').click(function() {
                 $('.layout-wrapper').removeClass('sidebar-collapsed');
                 $('#toggle-sidebar').find('i').removeClass('feather-chevron-right').addClass('feather-chevron-left');
             });
-        
+
 
             if ($(window).width() <= 768) {
                 $('.layout-wrapper').addClass('sidebar-collapsed');

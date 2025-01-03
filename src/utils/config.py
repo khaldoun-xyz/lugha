@@ -1,12 +1,13 @@
-
 # config.py
 import os
+
+import psycopg2
 from dotenv import load_dotenv
 from groq import Groq
-import psycopg2
 
 # Load environment variables
 load_dotenv()
+
 
 class Config:
     POSTGRES_DB = os.getenv("POSTGRES_DB")
@@ -16,10 +17,11 @@ class Config:
     POSTGRES_PORT = os.getenv("POSTGRES_PORT")
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
     MODEL = os.getenv("MODEL")
-    
+
+
 def create_db_connection():
     """Create a database connection using the Config class."""
-    
+
     try:
         return psycopg2.connect(
             dbname=Config.POSTGRES_DB,
@@ -31,6 +33,7 @@ def create_db_connection():
     except Exception as e:
         print(f"Error connecting to database: {e}")
         return None
+
 
 def initialize_groq_client():
     """Initialize and return the Groq client."""

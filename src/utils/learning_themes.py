@@ -1,12 +1,11 @@
 LEARNING_THEMES = {
-    
     "Free flow conversation": [
         "Casual conversations on diverse topics",
         "Improvising and responding spontaneously",
         "Building fluency and confidence",
         "Adapting to different communication styles",
     ],
-     "Mock interviews": [
+    "Mock interviews": [
         "Practicing common interview questions",
         "Simulating real-life interview scenarios",
         "Feedback on performance and areas of improvement",

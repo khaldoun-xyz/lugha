@@ -1,5 +1,6 @@
 # create_db.py
 from utils.config import create_db_connection
+
 create_table_query = """
 CREATE TABLE IF NOT EXISTS conversations (
     id SERIAL PRIMARY KEY,
@@ -16,6 +17,7 @@ CREATE TABLE IF NOT EXISTS conversations (
 );
 """
 
+
 def create_table():
     conn = create_db_connection()
     if conn is None:
@@ -29,6 +31,7 @@ def create_table():
         print(f"Error creating table: {e}")
     finally:
         conn.close()
+
 
 if __name__ == "__main__":
     create_table()

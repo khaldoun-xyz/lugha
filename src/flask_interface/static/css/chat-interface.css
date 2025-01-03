@@ -28,13 +28,13 @@ body {
     border-right: 1px solid var(--dark-border);
     overflow-y: auto;
     transition: all 0.3s ease;
-    scrollbar-width: none; 
-    -ms-overflow-style: none; 
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     z-index: 1000;
 }
 
 .sidebar::-webkit-scrollbar {
-    display: none; 
+    display: none;
 }
 
 .sidebar-collapsed .sidebar {
@@ -239,7 +239,7 @@ body {
     box-shadow: var(--shadow-md);
     margin-left: 7%;
     margin-right: 7%;
-    
+
 }
 
 .chat-header h1 {
@@ -458,7 +458,7 @@ body {
     }
 
     #chat-interface {
-        padding: var(--spacing-xs); 
+        padding: var(--spacing-xs);
     }
 
     #chat-box {
@@ -469,16 +469,16 @@ body {
     .toggle-sidebar-button {
         right: var(--spacing-sm);
         top: var(--spacing-sm);
-        position: fixed; 
-        z-index: 1100; 
+        position: fixed;
+        z-index: 1100;
         display: block;
     }
 
     .uncollapse-sidebar-button {
         top: var(--spacing-sm);
         left: var(--spacing-sm);
-        position: fixed; 
-        z-index: 1100; 
+        position: fixed;
+        z-index: 1100;
     }
 
     .input-group {
