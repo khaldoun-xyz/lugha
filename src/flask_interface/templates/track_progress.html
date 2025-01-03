@@ -16,7 +16,7 @@
         </div>
         <h1 class="welcome-title">Track Your <span>Progress</span></h1>
         <p class="welcome-subtitle">Review your language learning journey</p>
-        
+
         <div class="form-container">
             <div class="form-row">
                 <div class="form-group form-group-half">
@@ -51,7 +51,7 @@
         </div>
 
         <div id="progress-container" class="progress-container"></div>
-        
+
         <div class="message-description">
             <div class="button-group">
                 <button id="back-to-home" class="btn btn-primary">
@@ -65,7 +65,7 @@
         $(document).ready(function() {
             // Initialize Feather icons
             feather.replace();
-            
+
             const urlParams = new URLSearchParams(window.location.search);
             const username = urlParams.get('username');
 
@@ -83,7 +83,7 @@
                                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                                     .replace(/\*(.*?)\*/g, '<em>$1</em>')
                                     .replace(/\n/g, '<br>');
-                                
+
                                 $('#progress-container').append(`
                                     <div class="progress-item">
                                         <div class="progress-item-header">
@@ -118,16 +118,16 @@
                     }
                 });
             };
-        
+
             fetchProgress('asc', 'all', 'all');
-        
+
             $('#sort-order, #sort-language, #sort-theme').change(function() {
                 const sortOrder = $('#sort-order').val();
                 const languageFilter = $('#sort-language').val();
                 const themeFilter = $('#sort-theme').val();
                 fetchProgress(sortOrder, languageFilter, themeFilter);
             });
-        
+
             $('#back-to-home').click(function() {
                 window.location.href = '/';
             });
