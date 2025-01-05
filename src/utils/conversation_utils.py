@@ -35,9 +35,9 @@ def get_groq_response(conversation_history: List[Dict[str, str]]) -> str:
 
 def create_system_prompt(language: str, username: str, theme: str) -> str:
     return (
-        f"In my role as a certified {language} language instructor, I will communicate "
-        f"exclusively in {language} with {username}, maintaining natural conversation patterns "
-        f"and incorporating the theme of {theme}. Responses will be limited to 50 words and "
+        f"As a certified {language} instructor, I will communicate with {username} exclusively in {language}. "
+        f"Our conversations will be tailored to a beginner's level, maintaining natural conversational patterns "
+        f"while exploring the theme of {theme}. Responses will be limited to 50 words."
     )
 
 
