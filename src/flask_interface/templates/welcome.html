@@ -38,64 +38,40 @@
                                placeholder="Your Name"
                                required>
                     </div>
-                    <div class="button-group">
-                        <button id="get-started" class="btn btn-primary">
-                            <i data-feather="play"></i>
-                            Get Started
-                        </button>
-                        <button id="track-progress" class="btn btn-secondary">
-                            <i data-feather="bar-chart-2"></i>
-                            Track Progress
-                        </button>
-                    </div>
-                    <div id="additional-features" style="display: none; margin-top: 20px;">
-                        <div class="form-row">
-                            <div class="form-group form-group-half">
-                                <label for="language">
-                                    <i data-feather="globe"></i> Choose a language:
-                                </label>
-                                <select class="form-control dropdown-select" id="language">
-                                    <option value="english">English</option>
-                                    <option value="french">French</option>
-                                    <option value="german">German</option>
-                                    <option value="italian">Italian</option>
-                                    <option value="spanish">Spanish</option>
-                                    <option value="swedish">Swedish</option>
-                                </select>
-                            </div>
-                            <div class="form-group form-group-half">
-                                <label for="theme">
-                                    <i data-feather="bookmark"></i> Preferred Theme:
-                                </label>
-                                <select class="form-control dropdown-select" id="theme">
-                                    {% for theme in learning_themes %}<option value="{{ theme }}">{{ theme }}</option>{% endfor %}
-                                </select>
-                            </div>
+                    <div class="form-row">
+                        <div class="form-group-half">
+                            <label for="language">
+                                <i data-feather="globe"></i> Choose a language:
+                            </label>
+                            <select class="form-control dropdown-select" id="language">
+                                <option value="english">English</option>
+                                <option value="french">French</option>
+                                <option value="german">German</option>
+                                <option value="italian">Italian</option>
+                                <option value="spanish">Spanish</option>
+                                <option value="swedish">Swedish</option>
+                            </select>
                         </div>
-                        <button id="start-conversation" class="btn">
-                            <i data-feather="message-circle"></i>
-                            Start Conversation
-                        </button>
+                        <div class="form-group-half">
+                            <label for="theme">
+                                <i data-feather="bookmark"></i> Preferred Theme:
+                            </label>
+                            <select class="form-control dropdown-select" id="theme">
+                                {% for theme in learning_themes %}<option value="{{ theme }}">{{ theme }}</option>{% endfor %}
+                            </select>
+                        </div>
                     </div>
+
+                    <button id="start-conversation" class="btn">
+                        <i data-feather="message-circle"></i>
+                        Start Conversation
+                    </button>
                 </div>
             </div>
         </div>
         <script>
         $(document).ready(function () {
             feather.replace();
-
-            $('#get-started').click(function () {
-                $('#additional-features').slideDown();
-            });
-
-            $('#track-progress').click(function () {
-                const username = $('#username').val();
-                if (username) {
-                    window.location.href = `/track_progress?username=${encodeURIComponent(username)}`;
-                } else {
-                    alert('Please enter your name before tracking progress.');
-                }
-            });
 
             $('#start-conversation').click(function () {
                 const username = $('#username').val();
