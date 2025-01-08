@@ -10,9 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
-    <link rel="shortcut icon"
-          type="image/png"
-          href="{{ url_for('static', filename='favicon-lugha.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='favicon-lugha.png') }}">
 </head>
 <body>
     <div class="layout-wrapper">
@@ -50,7 +48,6 @@
                             <option value="italian">Italian</option>
                             <option value="spanish">Spanish</option>
                             <option value="swedish">Swedish</option>
-                            </select>
                         </select>
                     </div>
                 </div>
@@ -97,7 +94,7 @@
             </div>
             <div class="evaluation-container">
                 <div id="evaluation-message" style="display:none;"></div>
-                <div id="evaluation-result" style=" display:none;"></div>
+                <div id="evaluation-result" style="display:none;"></div>
             </div>
         </main>
     </div>
@@ -262,12 +259,6 @@
                 $('#uncollapse-sidebar').toggle($('.layout-wrapper').hasClass('sidebar-collapsed'));
             });
 
-            $('#uncollapse-sidebar').click(function() {
-                $('.layout-wrapper').removeClass('sidebar-collapsed');
-                $('#toggle-sidebar').find('i').removeClass('feather-chevron-right').addClass('feather-chevron-left');
-            });
-
-
             if ($(window).width() <= 768) {
                 $('.layout-wrapper').addClass('sidebar-collapsed');
             }
@@ -275,6 +266,39 @@
                 if ($(window).width() > 768) {
                     $('.layout-wrapper').removeClass('sidebar-collapsed');
                 }
+            });
+
+            // Mobile sidebar handling
+            if ($('.sidebar-overlay').length === 0) {
+                $('body').append('<div class="sidebar-overlay"></div>');
+            }
+
+            function toggleSidebar() {
+                $('.sidebar').toggleClass('active');
+                $('.sidebar-overlay').toggleClass('active');
+                $('body').toggleClass('sidebar-open');
+            }
+
+            $('.toggle-sidebar-button').click(function(e) {
+                e.stopPropagation();
+                toggleSidebar();
+            });
+
+            $('.sidebar-overlay').click(function() {
+                toggleSidebar();
+            });
+
+            const chatBox = document.getElementById('chat-box');
+            if (chatBox) {
+                chatBox.addEventListener('touchstart', function(e) {
+                    if (e.targetTouches.length === 1) {
+                        e.stopPropagation();
+                    }
+                }, false);
+            }
+
+            $('#chat-box').on('touchmove', function(e) {
+                e.stopPropagation();
             });
         });
     </script>
