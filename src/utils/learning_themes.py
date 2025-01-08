@@ -48,33 +48,4 @@ LEARNING_THEMES = {
         "Social norms and etiquette",
         "Comparing cultures",
     ],
-    "Advanced everyday life": [
-        "Discussing complex topics and expressing opinions",
-        "Writing formal and informal letters and emails",
-        "Giving presentations and speeches",
-        "Handling conflicts and negotiations",
-    ],
-    "Advanced work and education": [
-        "Career planning and professional development",
-        "Business communication and negotiations",
-        "Academic writing and research",
-        "International business etiquette",
-    ],
-    "Advanced travel and tourism": [
-        "Long-term travel and study abroad",
-        "Cultural exchange and intercultural communication",
-        "Sustainable travel practices",
-    ],
-    "Advanced social issues": [
-        "Global issues and international cooperation",
-        "Political systems and current affairs",
-        "Social and economic inequality",
-        "Technological impact on society",
-    ],
-    "Advanced culture and society": [
-        "German literature and philosophy",
-        "Contemporary German culture and media",
-        "Historical events and their impact on society",
-        "Analyzing German films and theater",
-    ],
 }
