@@ -79,17 +79,41 @@ def evaluate():
 
 @app.route("/fetch-progress", methods=["POST"])
 def fetch_progress():
-    data = request.json
-    username = data.get("username")
-    sort_order = data.get("sort_order", "asc")
-    language_filter = data.get("language", "all")
-    theme_filter = data.get("theme", "all")
-    progress = fetch_progress_data(username, sort_order, language_filter, theme_filter)
-    if progress is None:
-        return jsonify({"error": "Failed to fetch progress data"}), 500
-    elif not progress:
-        return jsonify({"message": "No progress data available for this user."}), 404
-    return jsonify({"progress": progress}), 200
+    try:
+        data = request.json
+        username = data.get("username")
+        sort_order = data.get("sort_order", "asc")
+        language_filter = data.get("language", "all")
+        theme_filter = data.get("theme", "all")
+
+        progress = fetch_progress_data(
+            username=username,
+            sort_order=sort_order,
+            language_filter=language_filter,
+            theme_filter=theme_filter,
+        )
+
+        if progress is None:
+            return (
+                jsonify({"error": "An error occurred while fetching progress data"}),
+                500,
+            )
+
+        if not progress:
+            return (
+                jsonify(
+                    {
+                        "progress": [],
+                        "message": "No data found for the selected filters",
+                    }
+                ),
+                200,
+            )
+
+        return jsonify({"progress": progress}), 200
+
+    except Exception as e:
+        return jsonify({"error": "An unexpected error occurred"}), 500
 
 
 @app.route("/track_progress")

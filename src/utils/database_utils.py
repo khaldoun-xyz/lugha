@@ -24,7 +24,10 @@ def log_conversation_to_db(
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                INSERT INTO conversations (username, prompt, response, created_at, start_time, end_time, interaction_count, duration, language, theme)
+                INSERT INTO conversations (
+                    username, prompt, response, created_at, start_time, end_time,
+                    interaction_count, duration, language, theme
+                )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
@@ -36,7 +39,7 @@ def log_conversation_to_db(
                     end_time,
                     interaction_count,
                     duration,
-                    language,
+                    language.lower(),
                     theme,
                 ),
             )
@@ -44,59 +47,62 @@ def log_conversation_to_db(
     except Exception as e:
         print(f"Error logging conversation: {e}")
     finally:
-        conn.close()
+        if conn:
+            conn.close()
 
 
 def fetch_progress_data(
-    username, sort_order="asc", language_filter="all", theme_filter="all"
+    username, sort_order="desc", language_filter="all", theme_filter="all"
 ):
+    conn = None
     try:
         conn = create_db_connection()
         with conn.cursor() as cursor:
-            order_direction = "ASC" if sort_order == "asc" else "DESC"
-
             query = """
                 SELECT created_at, language, theme, duration, interaction_count, evaluation
                 FROM conversations
-                WHERE username = %s AND evaluation IS NOT NULL AND theme IS NOT NULL AND language IS NOT NULL
+                WHERE username = %s
+                AND evaluation IS NOT NULL
+                AND theme IS NOT NULL
+                AND language IS NOT NULL
             """
             params = [username]
-
             if language_filter != "all":
-                query += " AND language = %s"
+                query += " AND LOWER(language) = LOWER(%s)"
                 params.append(language_filter)
 
             if theme_filter != "all":
                 query += " AND theme = %s"
                 params.append(theme_filter)
 
+            order_direction = "ASC" if sort_order.lower() == "asc" else "DESC"
             query += f" ORDER BY created_at {order_direction}"
 
             cursor.execute(query, params)
             progress = cursor.fetchall()
-            if not progress:
-                print(f"No progress data available for username: {username}")
-                return []
             result = []
-            for row in progress:
-                created_at = row[0]
-                language = row[1]
-                theme = row[2]
-                duration = row[3]
-                formatted_duration = format_duration(duration)
-                result.append(
-                    {
-                        "date": created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                        "language": language,
-                        "theme": theme,
-                        "duration": formatted_duration,
-                        "interaction_count": row[4],
-                        "evaluation": row[5],
-                    }
-                )
+            if progress:
+                for row in progress:
+                    (
+                        created_at,
+                        language,
+                        theme,
+                        duration,
+                        interaction_count,
+                        evaluation,
+                    ) = row
+                    result.append(
+                        {
+                            "date": created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                            "language": language.capitalize(),
+                            "theme": theme,
+                            "duration": format_duration(duration),
+                            "interaction_count": interaction_count,
+                            "evaluation": evaluation,
+                        }
+                    )
             return result
     except Exception as e:
-        print(f"Error fetching progress data: {e}")
         return None
     finally:
         if conn:
@@ -104,8 +110,14 @@ def fetch_progress_data(
 
 
 def fetch_all_users():
-    query = "SELECT DISTINCT username FROM conversations"
-    with create_db_connection() as conn:
+    conn = None
+    try:
+        conn = create_db_connection()
         with conn.cursor() as cursor:
-            cursor.execute(query)
+            cursor.execute("SELECT DISTINCT username FROM conversations")
             return [row[0] for row in cursor.fetchall()]
+    except Exception as e:
+        return []
+    finally:
+        if conn:
+            conn.close()
