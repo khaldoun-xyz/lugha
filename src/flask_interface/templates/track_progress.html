@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Language Learning Progress Tracker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-interface.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <link rel="shortcut icon"
@@ -25,14 +26,15 @@
                 <div class="form-group form-group-half">
                     <label for="sort-order">Sort by Date:</label>
                     <select id="sort-order" class="form-control dropdown-select">
-                        <option value="asc">Ascending</option>
                         <option value="desc">Descending</option>
+                        <option value="asc">Ascending</option>
                     </select>
                 </div>
                 <div class="form-group form-group-half">
                     <label for="sort-language">Sort by Language:</label>
                     <select class="form-control dropdown-select" id="language">
                         <option value="all">All</option>
+                        <option value="arabic">Arabic</option>
                         <option value="english">English</option>
                         <option value="french">French</option>
                         <option value="german">German</option>
@@ -52,6 +54,10 @@
                 </select>
             </div>
         </div>
+        <div id="loading-indicator" style="display:none;">
+            <div class="loading-spinner"></div>
+            <p>Processing your data...</p>
+        </div>
 
         <div id="progress-container" class="progress-container"></div>
 
@@ -66,20 +72,27 @@
 
     <script>
         $(document).ready(function() {
-            // Initialize Feather icons
             feather.replace();
 
             const urlParams = new URLSearchParams(window.location.search);
             const username = urlParams.get('username');
 
             const fetchProgress = (sortOrder, languageFilter, themeFilter) => {
+                $('#loading-indicator').show();
+                $('#progress-container').hide();
                 $.ajax({
                     url: '/fetch-progress',
                     method: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ username: username, sort_order: sortOrder, language: languageFilter, theme: themeFilter }),
+                    data: JSON.stringify({
+                        username: username,
+                        sort_order: sortOrder,
+                        language: languageFilter,
+                        theme: themeFilter
+                    }),
                     success: function(data) {
-                        $('#progress-container').empty();
+                        $('#loading-indicator').hide();
+                        $('#progress-container').show().empty();
                         if (Array.isArray(data.progress) && data.progress.length > 0) {
                             data.progress.forEach(item => {
                                 const formattedEvaluation = item.evaluation
@@ -94,7 +107,7 @@
                                             <span><i data-feather="globe"></i> ${item.language} | <i data-feather="bookmark"></i> ${item.theme}</span>
                                         </div>
                                         <div class="progress-item-body">
-                                            <p><strong><i data-feather="clock"></i> Duration:</strong> ${ item.duration}</p>
+                                            <p><strong><i data-feather="clock"></i> Duration:</strong> ${item.duration}</p>
                                             <p><strong><i data-feather="message-circle"></i> Interactions:</strong> ${item.interaction_count}</p>
                                             <div class="evaluation-section">
                                                 <strong><i data-feather="check-circle"></i> Evaluation:</strong>
@@ -106,27 +119,41 @@
                                 feather.replace();
                             });
                         } else {
+                            let filterMessage = "";
+                            if (languageFilter !== "all") {
+                                filterMessage += ` Language: ${languageFilter.charAt(0).toUpperCase() + languageFilter.slice(1)}`;
+                            }
+                            if (themeFilter !== "all") {
+                                filterMessage += filterMessage ? ` | Theme: ${themeFilter}` : ` Theme: ${themeFilter}`;
+                            }
+
                             $('#progress-container').append(`
                                 <div class="no-data">
                                     <i data-feather="inbox"></i>
-                                    <p>No progress data available.</p>
+                                    <p>No progress data available${filterMessage ? ` for${filterMessage}` : ""}.</p>
                                 </div>
                             `);
                             feather.replace();
                         }
                     },
                     error: function(err) {
-                        console.error(err);
-                        alert('Error fetching progress data. Please try again.');
+                        $('#loading-indicator').hide();
+                        $('#progress-container').show().html(`
+                            <div class="error">
+                                <i data-feather="alert-circle"></i>
+                                <p>Error loading progress data. Please try again.</p>
+                            </div>
+                        `);
+                        feather.replace();
                     }
                 });
             };
 
-            fetchProgress('asc', 'all', 'all');
+            fetchProgress('desc', 'all', 'all');
 
-            $('#sort-order, #sort-language, #sort-theme').change(function() {
+            $('#sort-order, #language, #sort-theme').change(function() {
                 const sortOrder = $('#sort-order').val();
-                const languageFilter = $('#sort-language').val();
+                const languageFilter = $('#language').val();
                 const themeFilter = $('#sort-theme').val();
                 fetchProgress(sortOrder, languageFilter, themeFilter);
             });
