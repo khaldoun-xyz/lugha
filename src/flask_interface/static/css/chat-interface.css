@@ -580,8 +580,9 @@ body {
     }
 
     #chat-box::-webkit-scrollbar {
-        width: 4px;
+        width: 5px;
     }
+
 
     #chat-box::-webkit-scrollbar-track {
         background: transparent;
