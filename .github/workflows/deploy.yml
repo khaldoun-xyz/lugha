@@ -15,8 +15,9 @@ jobs:
           username: ${{secrets.SSH_USERNAME}}
 
           script: |
-            mkdir deploy
-            cd deploy
+            cd lugha/ && docker-compose down
+            cd .. && rm -r lugha
             git clone git@github.com:khaldoun-xyz/lugha.git
-            docker-compose up --build -d
+            cp .env lugha/
+            cd lugha/ && docker-compose up --build -d
             echo 'Deployment successful to digital ocean'
