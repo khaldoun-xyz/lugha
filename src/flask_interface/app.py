@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, jsonify, render_template, request
 from flask_socketio import SocketIO
 
@@ -119,7 +118,7 @@ def fetch_progress():
 @app.route("/track_progress")
 def track_progress():
     return render_template(
-        "track_progress.html", learning_themes=LEARNING_THEMES.keys()
+        "lugha/track_progress.html", learning_themes=LEARNING_THEMES.keys()
     )
 
 
@@ -129,7 +128,7 @@ def chat_interface():
     language = request.args.get("language")
     theme = request.args.get("theme")
     return render_template(
-        "chat_interface.html",
+        "lugha/chat_interface.html",
         username=username,
         language=language,
         theme=theme,
@@ -139,13 +138,13 @@ def chat_interface():
 
 @app.route("/")
 def welcome():
-    return render_template("welcome.html", learning_themes=LEARNING_THEMES.keys())
+    return render_template("lugha/welcome.html", learning_themes=LEARNING_THEMES.keys())
 
 
 @app.route("/admin")
 def admin_page():
     users = fetch_all_users()
-    return render_template("admin.html", users=users)
+    return render_template("lugha/admin.html", users=users)
 
 
 @app.route("/api/conversations/<username>")

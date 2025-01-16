@@ -1,75 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Language Learning Progress Tracker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
-    <link rel="stylesheet" href="/static/css/pages/chat-interface.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
-    <link rel="shortcut icon"
-          type="image/png"
-          href="{{ url_for('static', filename='favicon-lugha.png') }}">
-</head>
-<body>
-    <div class="container">
-        <div class="logo-container">
-            <div class="logo-icon">L</div>
-            <div class="logo-text">Lugha</div>
-        </div>
-        <h1 class="welcome-title">Track Your <span>Progress</span></h1>
-        <p class="welcome-subtitle">Review your language learning journey</p>
+{% extends "base.html" %}
 
-        <div class="form-container">
-            <div class="form-row">
-                <div class="form-group form-group-half">
-                    <label for="sort-order">Sort by Date:</label>
-                    <select id="sort-order" class="form-control dropdown-select">
-                        <option value="desc">Descending</option>
-                        <option value="asc">Ascending</option>
-                    </select>
-                </div>
-                <div class="form-group form-group-half">
-                    <label for="sort-language">Sort by Language:</label>
-                    <select class="form-control dropdown-select" id="language">
-                        <option value="all">All</option>
-                        <option value="arabic">Arabic</option>
-                        <option value="english">English</option>
-                        <option value="french">French</option>
-                        <option value="german">German</option>
-                        <option value="italian">Italian</option>
-                        <option value="spanish">Spanish</option>
-                        <option value="swedish">Swedish</option>
-                    </select>
-                </div>
+{% block title %}Language Learning Progress Tracker{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/css/pages/chat-interface.css">
+{% endblock %}
+
+{% block content %}
+    <div class="logo-container">
+        <div class="logo-icon">L</div>
+        <div class="logo-text">Lugha</div>
+    </div>
+    <h1 class="welcome-title">Track Your <span>Progress</span></h1>
+    <p class="welcome-subtitle">Review your language learning journey</p>
+
+    <div class="form-container">
+        <div class="form-row">
+            <div class="form-group form-group-half">
+                <label for="sort-order">Sort by Date:</label>
+                <select id="sort-order" class="form-control dropdown-select">
+                    <option value="desc">Descending</option>
+                    <option value="asc">Ascending</option>
+                </select>
             </div>
-            <div class="form-group">
-                <label for="sort-theme">Sort by Theme:</label>
-                <select id="sort-theme" class="form-control dropdown-select">
+            <div class="form-group form-group-half">
+                <label for="sort-language">Sort by Language:</label>
+                <select class="form-control dropdown-select" id="language">
                     <option value="all">All</option>
-                    {% for theme in learning_themes %}
-                    <option value="{{ theme }}">{{ theme }}</option>
-                    {% endfor %}
+                    <option value="arabic">Arabic</option>
+                    <option value="english">English</option>
+                    <option value="french">French</option>
+                    <option value="german">German</option>
+                    <option value="italian">Italian</option>
+                    <option value="spanish">Spanish</option>
+                    <option value="swedish">Swedish</option>
                 </select>
             </div>
         </div>
-        <div id="loading-indicator" style="display:none;">
-            <div class="loading-spinner"></div>
-            <p>Processing your data...</p>
-        </div>
-
-        <div id="progress-container" class="progress-container"></div>
-
-        <div class="message-description">
-            <div class="button-group">
-                <button id="back-to-home" class="btn">
-                    <i data-feather="rewind"></i> Reset and Rewind
-                </button>
-            </div>
+        <div class="form-group">
+            <label for="sort-theme">Sort by Theme:</label>
+            <select id="sort-theme" class="form-control dropdown-select">
+                <option value="all">All</option>
+                {% for theme in learning_themes %}
+                <option value="{{ theme }}">{{ theme }}</option>
+                {% endfor %}
+            </select>
         </div>
     </div>
+    <div id="loading-indicator" style="display:none;">
+        <div class="loading-spinner"></div>
+        <p>Processing your data...</p>
+    </div>
 
+    <div id="progress-container" class="progress-container"></div>
+
+    <div class="message-description">
+        <div class="button-group">
+            <button id="back-to-home" class="btn">
+                <i data-feather="rewind"></i> Reset and Rewind
+            </button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
     <script>
         $(document).ready(function() {
             feather.replace();
@@ -163,5 +157,4 @@
             });
         });
     </script>
-</body>
-</html>
+{% endblock %}

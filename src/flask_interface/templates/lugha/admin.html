@@ -1,49 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Conversation History</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
-    <link rel="shortcut icon"
-          type="image/png"
-          href="{{ url_for('static', filename='favicon-lugha.png') }}">
-</head>
-<body>
-    <div class="container">
-        <div class="logo-container">
-            <div class="logo-icon">L</div>
-            <div class="logo-text">Lugha</div>
-        </div>
-        <h1 class="welcome-title">Admin <span>Panel</span></h1>
-        <p class="welcome-subtitle">View User Conversation History</p>
+{% extends "base.html" %}
 
-        <div class="form-container">
-            <div class="form-group">
-                <label for="user-select">Select User:</label>
-                <select id="user-select" class="form-control dropdown-select">
-                    <option value="">-- Select User --</option>
-                    {% for user in users %}
-                    <option value="{{ user }}">{{ user }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
+{% block title %}Admin - Conversation History{% endblock %}
 
-        <div id="loading-indicator" style="display: none;">Loading...</div>
-        <div id="conversation-history" class="progress-container" style="margin-top: 20px;"></div>
+{% block content %}
+    <div class="logo-container">
+        <div class="logo-icon">L</div>
+        <div class="logo-text">Lugha</div>
+    </div>
+    <h1 class="welcome-title">Admin <span>Panel</span></h1>
+    <p class="welcome-subtitle">View User Conversation History</p>
 
-        <div class="message-description">
-            <div class="button-group">
-                <button id="back-to-home" class="btn btn-primary">
-                    <i data-feather="rewind"></i> Reset and Rewind
-                </button>
-            </div>
+    <div class="form-container">
+        <div class="form-group">
+            <label for="user-select">Select User:</label>
+            <select id="user-select" class="form-control dropdown-select">
+                <option value="">-- Select User --</option>
+                {% for user in users %}
+                <option value="{{ user }}">{{ user }}</option>
+                {% endfor %}
+            </select>
         </div>
     </div>
 
+    <div id="loading-indicator" style="display: none;">Loading...</div>
+    <div id="conversation-history" class="progress-container" style="margin-top: 20px;"></div>
+
+    <div class="message-description">
+        <div class="button-group">
+            <button id="back-to-home" class="btn">
+                <i data-feather="rewind"></i> Reset and Rewind
+            </button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
     <script>
         $(document).ready(function() {
             $('#user-select').change(function() {
@@ -106,5 +97,4 @@
             });
         });
     </script>
-</body>
-</html>
+{% endblock %}
