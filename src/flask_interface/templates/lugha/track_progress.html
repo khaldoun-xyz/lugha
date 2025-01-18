@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Language Learning Progress Tracker{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/css/pages/chat-interface.css">
+{% endblock %}
+
+{% block content %}
+    <div class="logo-container">
+        <div class="logo-icon">L</div>
+        <div class="logo-text">Lugha</div>
+    </div>
+    <h1 class="welcome-title">Track Your <span>Progress</span></h1>
+    <p class="welcome-subtitle">Review your language learning journey</p>
+
+    <div class="form-container">
+        <div class="form-row">
+            <div class="form-group form-group-half">
+                <label for="sort-order">Sort by Date:</label>
+                <select id="sort-order" class="form-control dropdown-select">
+                    <option value="desc">Descending</option>
+                    <option value="asc">Ascending</option>
+                </select>
+            </div>
+            <div class="form-group form-group-half">
+                <label for="sort-language">Sort by Language:</label>
+                <select class="form-control dropdown-select" id="language">
+                    <option value="all">All</option>
+                    <option value="arabic">Arabic</option>
+                    <option value="english">English</option>
+                    <option value="french">French</option>
+                    <option value="german">German</option>
+                    <option value="italian">Italian</option>
+                    <option value="spanish">Spanish</option>
+                    <option value="swedish">Swedish</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="sort-theme">Sort by Theme:</label>
+            <select id="sort-theme" class="form-control dropdown-select">
+                <option value="all">All</option>
+                {% for theme in learning_themes %}
+                <option value="{{ theme }}">{{ theme }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div id="loading-indicator" style="display:none;">
+        <div class="loading-spinner"></div>
+        <p>Processing your data...</p>
+    </div>
+
+    <div id="progress-container" class="progress-container"></div>
+
+    <div class="message-description">
+        <div class="button-group">
+            <button id="back-to-home" class="btn">
+                <i data-feather="rewind"></i> Reset and Rewind
+            </button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script>
+        $(document).ready(function() {
+            feather.replace();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const username = urlParams.get('username');
+
+            const fetchProgress = (sortOrder, languageFilter, themeFilter) => {
+                $('#loading-indicator').show();
+                $('#progress-container').hide();
+                $.ajax({
+                    url: '/fetch-progress',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        username: username,
+                        sort_order: sortOrder,
+                        language: languageFilter,
+                        theme: themeFilter
+                    }),
+                    success: function(data) {
+                        $('#loading-indicator').hide();
+                        $('#progress-container').show().empty();
+                        if (Array.isArray(data.progress) && data.progress.length > 0) {
+                            data.progress.forEach(item => {
+                                const formattedEvaluation = item.evaluation
+                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                    .replace(/\n/g, '<br>');
+
+                                $('#progress-container').append(`
+                                    <div class="progress-item">
+                                        <div class="progress-item-header">
+                                            <strong><i data-feather="calendar"></i> ${item.date}</strong>
+                                            <span><i data-feather="globe"></i> ${item.language} | <i data-feather="bookmark"></i> ${item.theme}</span>
+                                        </div>
+                                        <div class="progress-item-body">
+                                            <p><strong><i data-feather="clock"></i> Duration:</strong> ${item.duration}</p>
+                                            <p><strong><i data-feather="message-circle"></i> Interactions:</strong> ${item.interaction_count}</p>
+                                            <div class="evaluation-section">
+                                                <strong><i data-feather="check-circle"></i> Evaluation:</strong>
+                                                <div class="evaluation-content">${formattedEvaluation}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `);
+                                feather.replace();
+                            });
+                        } else {
+                            let filterMessage = "";
+                            if (languageFilter !== "all") {
+                                filterMessage += ` Language: ${languageFilter.charAt(0).toUpperCase() + languageFilter.slice(1)}`;
+                            }
+                            if (themeFilter !== "all") {
+                                filterMessage += filterMessage ? ` | Theme: ${themeFilter}` : ` Theme: ${themeFilter}`;
+                            }
+
+                            $('#progress-container').append(`
+                                <div class="no-data">
+                                    <i data-feather="inbox"></i>
+                                    <p>No progress data available${filterMessage ? ` for${filterMessage}` : ""}.</p>
+                                </div>
+                            `);
+                            feather.replace();
+                        }
+                    },
+                    error: function(err) {
+                        $('#loading-indicator').hide();
+                        $('#progress-container').show().html(`
+                            <div class="error">
+                                <i data-feather="alert-circle"></i>
+                                <p>Error loading progress data. Please try again.</p>
+                            </div>
+                        `);
+                        feather.replace();
+                    }
+                });
+            };
+
+            fetchProgress('desc', 'all', 'all');
+
+            $('#sort-order, #language, #sort-theme').change(function() {
+                const sortOrder = $('#sort-order').val();
+                const languageFilter = $('#language').val();
+                const themeFilter = $('#sort-theme').val();
+                fetchProgress(sortOrder, languageFilter, themeFilter);
+            });
+
+            $('#back-to-home').click(function() {
+                window.location.href = '/';
+            });
+        });
+    </script>
+{% endblock %}

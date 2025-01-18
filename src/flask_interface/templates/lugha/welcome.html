@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Lugha - Language Competence Evaluation{% endblock %}
+
+{% block extra_head %}
+    <meta name="description" content="Lugha - Evaluate and improve your language competence through interactive conversations">
+    <meta name="keywords" content="language learning, language evaluation, language competence, language assessment, online learning">
+{% endblock %}
+
+{% block content %}
+    <div class="welcome-container">
+        <div class="welcome-card">
+            <div class="logo-container">
+                <div class="logo-icon">L</div>
+                <div class="logo-text">Lugha</div>
+            </div>
+            <h1 class="welcome-title">
+                Evaluate your <span>language</span>
+                <br>
+                competence
+            </h1>
+            <div class="form-container">
+                <div class="form-group-half">
+                    <label for="username">
+                        <i data-feather="user"></i> Enter your name:
+                    </label>
+                    <input type="text" class="form-control" id="username" placeholder="Your Name" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group-half">
+                        <label for="language">
+                            <i data-feather="globe"></i> Choose a language:
+                        </label>
+                        <select class="form-control dropdown-select" id="language">
+                            <option value="arabic">Arabic</option>
+                            <option value="english" selected>English</option>
+                            <option value="french">French</option>
+                            <option value="german">German</option>
+                            <option value="italian">Italian</option>
+                            <option value="spanish">Spanish</option>
+                            <option value="swedish">Swedish</option>
+                        </select>
+                    </div>
+                    <div class="form-group-half">
+                        <label for="theme">
+                            <i data-feather="bookmark"></i> Preferred Theme:
+                        </label>
+                        <select class="form-control dropdown-select" id="theme">
+                            {% for theme in learning_themes %}
+                            <option value="{{ theme }}">{{ theme }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <button id="start-conversation" class="btn">
+                    <i data-feather="message-circle"></i>
+                    Start Conversation
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script>
+        $(document).ready(function () {
+            feather.replace();
+
+            $('#start-conversation').click(function () {
+                const username = $('#username').val();
+                const language = $('#language').val();
+                const theme = $('#theme').val();
+
+                if (username && language && theme) {
+                    window.location.href = `/chat-interface?username=${encodeURIComponent(username)}&language=${encodeURIComponent(language)}&theme=${encodeURIComponent(theme)}`;
+                } else {
+                    alert('Please fill in all required fields.');
+                }
+            });
+        });
+    </script>
+{% endblock %}

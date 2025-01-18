@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, jsonify, render_template, request
 from flask_socketio import SocketIO
 
@@ -79,23 +78,47 @@ def evaluate():
 
 @app.route("/fetch-progress", methods=["POST"])
 def fetch_progress():
-    data = request.json
-    username = data.get("username")
-    sort_order = data.get("sort_order", "asc")
-    language_filter = data.get("language", "all")
-    theme_filter = data.get("theme", "all")
-    progress = fetch_progress_data(username, sort_order, language_filter, theme_filter)
-    if progress is None:
-        return jsonify({"error": "Failed to fetch progress data"}), 500
-    elif not progress:
-        return jsonify({"message": "No progress data available for this user."}), 404
-    return jsonify({"progress": progress}), 200
+    try:
+        data = request.json
+        username = data.get("username")
+        sort_order = data.get("sort_order", "asc")
+        language_filter = data.get("language", "all")
+        theme_filter = data.get("theme", "all")
+
+        progress = fetch_progress_data(
+            username=username,
+            sort_order=sort_order,
+            language_filter=language_filter,
+            theme_filter=theme_filter,
+        )
+
+        if progress is None:
+            return (
+                jsonify({"error": "An error occurred while fetching progress data"}),
+                500,
+            )
+
+        if not progress:
+            return (
+                jsonify(
+                    {
+                        "progress": [],
+                        "message": "No data found for the selected filters",
+                    }
+                ),
+                200,
+            )
+
+        return jsonify({"progress": progress}), 200
+
+    except Exception as e:
+        return jsonify({"error": "An unexpected error occurred"}), 500
 
 
 @app.route("/track_progress")
 def track_progress():
     return render_template(
-        "track_progress.html", learning_themes=LEARNING_THEMES.keys()
+        "lugha/track_progress.html", learning_themes=LEARNING_THEMES.keys()
     )
 
 
@@ -105,7 +128,7 @@ def chat_interface():
     language = request.args.get("language")
     theme = request.args.get("theme")
     return render_template(
-        "chat_interface.html",
+        "lugha/chat_interface.html",
         username=username,
         language=language,
         theme=theme,
@@ -115,13 +138,13 @@ def chat_interface():
 
 @app.route("/")
 def welcome():
-    return render_template("welcome.html", learning_themes=LEARNING_THEMES.keys())
+    return render_template("lugha/welcome.html", learning_themes=LEARNING_THEMES.keys())
 
 
 @app.route("/admin")
 def admin_page():
     users = fetch_all_users()
-    return render_template("admin.html", users=users)
+    return render_template("lugha/admin.html", users=users)
 
 
 @app.route("/api/conversations/<username>")
