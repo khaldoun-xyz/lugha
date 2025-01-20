@@ -114,15 +114,14 @@
     flex-direction: column;
     width: 100%;
     max-width: 1300px;
-    height: calc(100vh - 80px);
-    max-height: calc(100vh - 80px);
+    height: calc(100vh - var(--spacing-lg) * 2);
     position: relative;
 }
 
 #chat-box {
     flex: 1;
     min-height: 0;
-    max-height: calc(100vh - 180px);
+    max-height: calc(100vh - - var(--spacing-lg) * 2);
     overflow-y: auto;
     background: var(--dark-surface-lighter);
     border-radius: var(--radius-xs);
@@ -245,6 +244,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .uncollapse-sidebar-button {
@@ -255,7 +257,12 @@
     height: 40px;
     border-radius: 50%;
     display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
     z-index: 1100;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .toast {
@@ -339,13 +346,16 @@
     }
 
     #chat-interface {
-        height: calc(100vh - 112px);
+        height: calc(130vh - 90px);
         padding: var(--spacing-xs);
         margin: 0;
     }
 
     #chat-box {
-        height: calc(100vh - 220px);
+        height: calc(170vh - 100px);
+    }
+    #chat-box:not(:empty) {
+        justify-content: flex-end;
     }
 
     .message-bubble {
