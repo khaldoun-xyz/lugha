@@ -114,14 +114,14 @@
     flex-direction: column;
     width: 100%;
     max-width: 1300px;
-    height: calc(100vh - var(--spacing-lg) * 2);
+    height: calc(100vh - 5rem);
     position: relative;
 }
 
 #chat-box {
     flex: 1;
     min-height: 0;
-    max-height: calc(100vh - - var(--spacing-lg) * 2);
+    max-height: calc(100vh - 11rem);
     overflow-y: auto;
     background: var(--dark-surface-lighter);
     border-radius: var(--radius-xs);
@@ -346,14 +346,11 @@
     }
 
     #chat-interface {
-        height: calc(130vh - 90px);
+        height: calc(100vh - 5rem);
         padding: var(--spacing-xs);
         margin: 0;
     }
 
-    #chat-box {
-        height: calc(170vh - 100px);
-    }
     #chat-box:not(:empty) {
         justify-content: flex-end;
     }
