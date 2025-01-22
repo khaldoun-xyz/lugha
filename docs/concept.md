@@ -89,6 +89,14 @@ Additional details:
 Before then, users see:
 *"You’ll receive visualizations of your progress after completing 7 days of conversations."*
 
+**Optimization:**
+To enhance dashboard performance, we created a dedicated table with these columns:
+- **Date**: Stores the day (date only, no time).
+- **Overall Score**: Aggregated from the evaluation field for all conversations on that day.
+- **Total Duration**: Sum of all conversation durations for that day in minutes.
+
+This table auto-updates after each completed conversation, ensuring real-time data without repeated fetching or calculations.
+
 <img src="./files/lugha-sketch-log.png" alt="lugha-sketch-log.png" width="25%" />
 
 ### Coach

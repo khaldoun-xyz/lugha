@@ -1,20 +1,20 @@
-# evaluate your language level
+# Lugha: evaluate your language competence
 
-----
+Chat with Lugha at <https://lugha.xyz/>.
 
-Install pre-commit hook
-- run `pre-commit install`
-----
+You can learn to speak a language conversationally within 3 months,
+if you are intensely focused and disciplined.
+Increase your learning rate by receiving feedback frequently.
 
-# how to get going on your laptop
+The concept for Lugha is [here](/docs/concept.md). Feel free to contribute.
+
+## laptop set up
 
 - create a .env file and provide relevant parameters
-- create a virtualenv or conda environment using the requirements.txt file & activate it
-- App Interface: To use the app interface, navigate to `src` & run: `python -m flask_interface.app`
+- run `docker-compose up --build`
 
-----
+## suggest changes
 
-# build & run docker
-
-- `docker build -t lugha .`
-- `docker-compose up --build -d`
+- either open a ticket or a pull request
+- before opening a PR, make sure your suggestions pass our pre-commit hooks
+  - to install the pre-commit hooks, run `pre-commit install` in root
