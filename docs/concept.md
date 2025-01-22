@@ -48,21 +48,16 @@ or 2) finish your conversation
 
 <img src="./files/lugha-sketch-chat.png" alt="lugha-sketch-chat.png" width="25%" />
 
-**Threshold for Evaluation:**
-Users can receive an evaluation only if the following
-conditions are met:
-1. The total number of words sent by the user
-   throughout the conversation exceeds 10 words.
-If criteria aren’t met, users see a friendly message:
-*"Your conversation didn’t meet the criteria for evaluation.
-Please ensure more discussion for meaningful feedback."*
-
----
-
 ### Evaluation
 
 After finishing a conversation,
 see your evaluation and the now locked conversation.
+
+A user can receive an evaluation only if the total number
+of words sent by the user exceeds 10 words.
+If this criterion isn't met, the user sees this friendly message:
+*"Your conversation didn’t meet the criteria for evaluation.
+Please send at least 10 words to receive a meaningful feedback."*
 
 <img src="./files/lugha-sketch-evaluation.png" alt="lugha-sketch-evaluation.png" width="25%" />
 
@@ -76,13 +71,16 @@ the user sees the screen “When ‘Chat’ is clicked”.
 [HOW WILL CHANGES OVER TIME BE VISUALISED?
 E.G. VIA BUTTON TO DEPICT GRAPHS ON THE BOTTOM LEFT?]
 
-#### Dashboard Features:
+#### Dashboard Features
+
 A **bar chart** presents a multivariable analysis:
+
 - **X-axis**: Dates (day/month).
 - **Y-axis**: Overall scores (0%–100%) for each day
 (calculated as the average rating of all conversations for that day).
 
 Additional details:
+
 - Bars display total conversation duration (in minutes) at the top.
 - Scores and durations are stored in a database.
 - A **horizontal scrollbar** allows exploration of historical data.
