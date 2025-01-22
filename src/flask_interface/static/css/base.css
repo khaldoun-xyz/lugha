@@ -110,8 +110,8 @@ body {
 
 .form-control {
     width: 100%;
-    padding: var(--spacing-xs);
-    background: var(--dark-surface-lighter);
+    padding: var(--spacing-sm);
+    background: var(--dark-surface);
     border: 1.5px solid var(--dark-border);
     color: var(--dark-text);
     border-radius: var(--radius-sm);
