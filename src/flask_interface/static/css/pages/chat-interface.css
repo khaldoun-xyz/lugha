@@ -351,10 +351,6 @@
         margin: 0;
     }
 
-    #chat-box:not(:empty) {
-        justify-content: flex-end;
-    }
-
     .message-bubble {
         max-width: 85%;
     }
