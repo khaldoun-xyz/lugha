@@ -53,7 +53,11 @@ Users can receive an evaluation only if the following
 conditions are met:
 1. The total number of words sent by the user
    throughout the conversation exceeds 10 words.
-2. The conversation duration exceeds 3 minutes.
+If criteria aren’t met, users see a friendly message:
+*"Your conversation didn’t meet the criteria for evaluation.
+Please ensure more discussion for meaningful feedback."*
+
+---
 
 ### Evaluation
 
@@ -64,27 +68,28 @@ see your evaluation and the now locked conversation.
 
 ### Log
 
-The log screen shows a **Dashboard** at first,
-featuring a multivariable analysis using a bar chart:
-
-- **X-axis**: Dates (day/month).
-- **Y-axis**: Overall scores (from 0% to 100%) per day.
-  (Scores are calculated by asking the LLM
-  to provide an overall rating for all conversations
-  that took place on that specific day.)
-
-**Additional details:**
-- Each bar displays the rounded total duration
-  (in minutes) at the top for that day.
-- These scores and durations are stored in the database.
-
-Below the Dashboard, the log screen shows a full list of all
+The log screen shows a full list of all
 past (now locked) conversations and their evaluations
 (see evaluation screen). A user can initiate
 a new conversation here. When he clicks “NEW”,
 the user sees the screen “When ‘Chat’ is clicked”.
 [HOW WILL CHANGES OVER TIME BE VISUALISED?
 E.G. VIA BUTTON TO DEPICT GRAPHS ON THE BOTTOM LEFT?]
+
+#### Dashboard Features:
+A **bar chart** presents a multivariable analysis:
+- **X-axis**: Dates (day/month).
+- **Y-axis**: Overall scores (0%–100%) for each day
+(calculated as the average rating of all conversations for that day).
+
+Additional details:
+- Bars display total conversation duration (in minutes) at the top.
+- Scores and durations are stored in a database.
+- A **horizontal scrollbar** allows exploration of historical data.
+
+**Note:** The dashboard appears after **7 days** of usage.
+Before then, users see:
+*"You’ll receive visualizations of your progress after completing 7 days of conversations."*
 
 <img src="./files/lugha-sketch-log.png" alt="lugha-sketch-log.png" width="25%" />
 
