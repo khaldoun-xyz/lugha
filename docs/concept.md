@@ -48,6 +48,13 @@ or 2) finish your conversation
 
 <img src="./files/lugha-sketch-chat.png" alt="lugha-sketch-chat.png" width="25%" />
 
+**Threshold for Evaluation:**
+Users can receive an evaluation only if the following
+conditions are met:
+1. The total number of words sent by the user
+   throughout the conversation exceeds 10 words.
+2. The conversation duration exceeds 3 minutes.
+
 ### Evaluation
 
 After finishing a conversation,
@@ -57,8 +64,22 @@ see your evaluation and the now locked conversation.
 
 ### Log
 
-The log screen shows a full list of all past
-(now locked) conversations and their evaluations
+The log screen shows a **Dashboard** at first,
+featuring a multivariable analysis using a bar chart:
+
+- **X-axis**: Dates (day/month).
+- **Y-axis**: Overall scores (from 0% to 100%) per day.
+  (Scores are calculated by asking the LLM
+  to provide an overall rating for all conversations
+  that took place on that specific day.)
+
+**Additional details:**
+- Each bar displays the rounded total duration
+  (in minutes) at the top for that day.
+- These scores and durations are stored in the database.
+
+Below the Dashboard, the log screen shows a full list of all
+past (now locked) conversations and their evaluations
 (see evaluation screen). A user can initiate
 a new conversation here. When he clicks “NEW”,
 the user sees the screen “When ‘Chat’ is clicked”.
