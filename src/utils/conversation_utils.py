@@ -9,7 +9,7 @@ from evaluation_utils.evaluate import (
     format_duration,
     get_last_conversation,
 )
-from utils.config import Config, initialize_groq_client
+from utils.config import Config, create_db_connection, initialize_groq_client
 from utils.database_utils import log_conversation_to_db
 
 client = initialize_groq_client()
@@ -119,29 +119,50 @@ def log_end_conversation(
     end_time = datetime.now()
     duration = end_time - conversation["start_time"]
 
-    log_conversation_to_db(
-        username,
-        "",
-        "",
-        conversation["start_time"],
-        end_time,
-        conversation["interaction_count"],
-        conversation["language"],
-        conversation["theme"],
+    # Count total words from user messages
+    user_words = sum(
+        len(msg["content"].split())
+        for msg in conversation["history"]
+        if msg["role"] == "user"
     )
 
-    evaluation, _, _ = evaluate_last_conversation(username, conversation["language"])
-
-    result = {
-        "interaction_count": conversation["interaction_count"],
-        "total_duration": format_duration(duration),
-        "evaluation": evaluation,
-        "theme": conversation["theme"],
-        "language": conversation["language"],
-    }
+    # If user hasn't sent at least 10 words, return a special evaluation
+    if user_words < 10:
+        result = {
+            "interaction_count": conversation["interaction_count"],
+            "total_duration": format_duration(duration),
+            "evaluation": "Your conversation didn't meet the criteria for evaluation. Please send at least 10 words to receive a meaningful feedback.",
+            "theme": conversation["theme"],
+            "language": conversation["language"],
+        }
+    else:
+        # Existing evaluation logic
+        evaluation, _, _ = evaluate_last_conversation(
+            username, conversation["language"]
+        )
+        result = {
+            "interaction_count": conversation["interaction_count"],
+            "total_duration": format_duration(duration),
+            "evaluation": evaluation,
+            "theme": conversation["theme"],
+            "language": conversation["language"],
+        }
 
     del conversations[username]
     return result
+
+
+def count_user_words(username: str, start_time: datetime, end_time: datetime) -> int:
+    query = """
+        SELECT SUM(LENGTH(prompt) - LENGTH(REPLACE(prompt, ' ', '')) + 1) AS total_words
+        FROM conversations
+        WHERE username = %s AND start_time = %s AND end_time = %s;
+    """
+    with create_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(query, (username, start_time, end_time))
+            result = cursor.fetchone()
+            return result[0] if result and result[0] is not None else 0
 
 
 def evaluate_conversation(

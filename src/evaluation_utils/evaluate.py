@@ -157,6 +157,14 @@ class LanguageEvaluator:
         interaction_count = messages[-1][2] if messages else 0
         duration = times.end_time - times.start_time
 
+        user_words = sum(len(msg[0].split()) for msg in messages if msg[0])
+        if user_words < 10:
+            return (
+                "Your conversation didn’t meet the criteria for evaluation. Please send at least 10 words to receive meaningful feedback.",
+                0,
+                "00:00",
+            )
+
         evaluation_prompt = self.create_evaluation_prompt(
             formatted_conversation, language
         )
