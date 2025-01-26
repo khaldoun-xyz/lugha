@@ -67,9 +67,36 @@ The log screen shows a full list of all
 past (now locked) conversations and their evaluations
 (see evaluation screen). A user can initiate
 a new conversation here. When he clicks “NEW”,
-the user sees the screen “When ‘Chat’ is clicked”.
-[HOW WILL CHANGES OVER TIME BE VISUALISED?
-E.G. VIA BUTTON TO DEPICT GRAPHS ON THE BOTTOM LEFT?]
+the user sees the same options as on the Welcome screen.
+Also, a user can see a graph that depicts his
+progress.
+
+#### Progress graph
+
+A **bar chart** presents a multivariable analysis:
+
+- **X-axis**: Dates (day/month).
+- **Y-axis**: Overall scores (0%–100%) for each day
+(calculated as the average rating of all conversations for that day).
+
+Additional details:
+
+- Bars display total conversation duration (in minutes) at the top.
+- Scores and durations are stored in a database.
+- A **horizontal scrollbar** allows exploration of historical data.
+
+**Note:** The dashboard appears after **7 days** of usage.
+Before then, users see:
+*"You’ll receive visualizations of your progress after completing 7 days of conversations."*
+
+**Optimization:**
+To enhance dashboard performance, we created a dedicated table with these columns:
+
+- **Date**: Stores the day (date only, no time).
+- **Overall Score**: Aggregated from the evaluation field for all conversations on that day.
+- **Total Duration**: Sum of all conversation durations for that day in minutes.
+
+This table auto-updates after each completed conversation, ensuring real-time data without repeated fetching or calculations.
 
 #### Dashboard Features
 
