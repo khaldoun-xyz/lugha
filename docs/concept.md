@@ -115,3 +115,36 @@ if the app is available. If it is unavailable,
 it sends a Telegram message to the admins.
 It also checks usage statistics. Once a week, it sends an
 "I'm alive message" and provides summary statistics.
+
+## Database Refactoring
+
+To improve data organization and query efficiency, we are transforming the database into a **star schema model**.
+This involves separating data into a central **Fact Table** and related **Dimension Tables**.
+
+### Proposed Structure
+
+#### FactTable_Conversation
+- **conversation_id** (Primary Key)
+- **user_name**
+- **language**
+- **theme**
+- **start_time**
+
+#### Dim_ConversationDetails
+- **conversation_id** (Foreign Key referencing FactTable_Conversation)
+- **user_prompt**
+- **bot_messages**
+- **end_time**
+
+#### Dim_ConversationMetrics
+- **conversation_id** (Foreign Key referencing FactTable_Conversation)
+- **start_time**
+- **end_time**
+- **evaluation**
+- **duration**
+- **interaction_count**
+
+### Benefits
+Separates data into logical units for better clarity.
+Simplifies querying and improves performance.
+Easier to extend with additional metrics or dimensions in the future.
