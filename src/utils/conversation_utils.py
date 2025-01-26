@@ -1,6 +1,5 @@
-import re
-
 # conversation_utils.py
+import re
 from datetime import datetime
 from typing import Any, Dict, List
 
@@ -72,6 +71,14 @@ def restart_conversation_logic(
     return initialize_conversation(language, theme, username)
 
 
+def count_user_words(conversation_history: List[Dict[str, str]]) -> int:
+    return sum(
+        len(msg["content"].split())
+        for msg in conversation_history
+        if msg["role"] == "user"
+    )
+
+
 def process_user_message(
     conversations: Dict[str, Any],
     client: Any,
@@ -119,14 +126,8 @@ def log_end_conversation(
     end_time = datetime.now()
     duration = end_time - conversation["start_time"]
 
-    # Count total words from user messages
-    user_words = sum(
-        len(msg["content"].split())
-        for msg in conversation["history"]
-        if msg["role"] == "user"
-    )
+    user_words = count_user_words(conversation["history"])
 
-    # If user hasn't sent at least 10 words, return a special evaluation
     if user_words < 10:
         result = {
             "interaction_count": conversation["interaction_count"],
@@ -150,19 +151,6 @@ def log_end_conversation(
 
     del conversations[username]
     return result
-
-
-def count_user_words(username: str, start_time: datetime, end_time: datetime) -> int:
-    query = """
-        SELECT SUM(LENGTH(prompt) - LENGTH(REPLACE(prompt, ' ', '')) + 1) AS total_words
-        FROM conversations
-        WHERE username = %s AND start_time = %s AND end_time = %s;
-    """
-    with create_db_connection() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(query, (username, start_time, end_time))
-            result = cursor.fetchone()
-            return result[0] if result and result[0] is not None else 0
 
 
 def evaluate_conversation(
