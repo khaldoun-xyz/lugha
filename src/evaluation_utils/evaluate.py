@@ -26,10 +26,13 @@ class DatabaseManager:
     @staticmethod
     def fetch_last_conversation_id(username: str) -> Optional[int]:
         query = """
-        SELECT conversation_id
-        FROM conversations_parameters
-        WHERE user_name = %s
-        ORDER BY created_at DESC
+        SELECT cp.start_time, ce.end_time
+        FROM Conversations_parameters cp
+        JOIN Conversations_evaluations ce ON cp.conversation_id = ce.conversation_id
+        WHERE cp.user_name = %s
+        AND cp.start_time IS NOT NULL
+        AND ce.end_time IS NOT NULL
+        ORDER BY cp.created_at DESC
         LIMIT 1
         """
         with create_db_connection() as conn:
@@ -58,9 +61,11 @@ class DatabaseManager:
     def fetch_conversation_messages(conversation_id: int) -> List[Tuple]:
         query = """
         SELECT user_prompt, bot_messages, interaction_count
-        FROM conversations_parameters cp
-        LEFT JOIN conversations_evaluations ce ON cp.conversation_id = ce.conversation_id
-        WHERE cp.conversation_id = %s
+        FROM Conversations_parameters cp
+        JOIN Conversations_evaluations ce ON cp.conversation_id = ce.conversation_id
+        WHERE cp.user_name = %s
+        AND cp.start_time >= %s
+        AND ce.end_time <= %s
         ORDER BY cp.created_at ASC
         """
         with create_db_connection() as conn:
@@ -73,13 +78,20 @@ class DatabaseManager:
         conversation_id: int, evaluation: str, end_time: datetime
     ) -> None:
         query = """
-        UPDATE conversations_evaluations
+        UPDATE Conversations_evaluations
         SET evaluation = %s, end_time = %s
-        WHERE conversation_id = %s
+        WHERE conversation_id = (
+            SELECT conversation_id
+            FROM Conversations_parameters
+            WHERE user_name = %s AND start_time = %s
+            LIMIT 1
+        )
         """
         with create_db_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(query, (evaluation, end_time, conversation_id))
+                cursor.execute(
+                    query, (evaluation, times.end_time, username, times.start_time)
+                )
                 conn.commit()
 
 
