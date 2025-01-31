@@ -158,10 +158,10 @@ To improve data organization and query efficiency, we are transforming the datab
 - **bot_messages**
 
 
-
 #### Conversations_evaluations
 - **conversation_id**
 - **evaluation**
 - **end_time**
+
 - **duration**
 - **interaction_count**
