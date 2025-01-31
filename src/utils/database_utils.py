@@ -7,7 +7,16 @@ from utils.learning_themes import LEARNING_THEMES
 
 
 def log_conversation_to_db(
-    username, prompt, response, start_time, end_time, interaction_count, language, theme
+    username,
+    prompt,
+    response,
+    start_time,
+    end_time,
+    interaction_count,
+    language,
+    theme,
+    is_final=False,
+    evaluation=None,
 ):
     if start_time is None or end_time is None:
         print(
@@ -22,27 +31,59 @@ def log_conversation_to_db(
 
     try:
         with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                INSERT INTO conversations (
-                    username, prompt, response, created_at, start_time, end_time,
-                    interaction_count, duration, language, theme
+            if is_final:
+                cursor.execute(
+                    """
+                    INSERT INTO Conversations_parameters (
+                        user_name, created_at, language, theme, start_time, user_prompt, bot_messages
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    RETURNING conversation_id
+                    """,
+                    (
+                        username,
+                        datetime.now(),
+                        language.lower() if language else "unknown",
+                        theme if theme else "unknown",
+                        start_time,
+                        prompt if prompt else "No prompt",
+                        response if response else "No response",
+                    ),
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """,
-                (
-                    username,
-                    prompt,
-                    response,
-                    datetime.now(),
-                    start_time,
-                    end_time,
-                    interaction_count,
-                    duration,
-                    language.lower(),
-                    theme,
-                ),
-            )
+                conversation_id = cursor.fetchone()[0]
+                cursor.execute(
+                    """
+                    INSERT INTO Conversations_evaluations (
+                        conversation_id, duration, interaction_count, end_time, evaluation
+                    )
+                    VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (
+                        conversation_id,
+                        duration,
+                        interaction_count,
+                        end_time,
+                        evaluation,
+                    ),
+                )
+
+                cursor.execute(
+                    """
+                    INSERT INTO Conversations_parameters (
+                        user_name, created_at, language, theme, start_time, user_prompt, bot_messages
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        username,
+                        datetime.now(),
+                        language.lower() if language else "unknown",
+                        theme if theme else "unknown",
+                        start_time,
+                        prompt if prompt else "No prompt",
+                        response if response else "No response",
+                    ),
+                )
             conn.commit()
     except Exception as e:
         print(f"Error logging conversation: {e}")
@@ -59,24 +100,22 @@ def fetch_progress_data(
         conn = create_db_connection()
         with conn.cursor() as cursor:
             query = """
-                SELECT created_at, language, theme, duration, interaction_count, evaluation
-                FROM conversations
-                WHERE username = %s
-                AND evaluation IS NOT NULL
-                AND theme IS NOT NULL
-                AND language IS NOT NULL
+            SELECT cp.created_at, cp.language, cp.theme, ce.duration, ce.interaction_count, ce.evaluation
+            FROM Conversations_parameters cp
+            JOIN Conversations_evaluations ce ON cp.conversation_id = ce.conversation_id
+            WHERE cp.user_name = %s
             """
             params = [username]
             if language_filter != "all":
-                query += " AND LOWER(language) = LOWER(%s)"
+                query += " AND LOWER(cp.language) = LOWER(%s)"
                 params.append(language_filter)
 
             if theme_filter != "all":
-                query += " AND theme = %s"
+                query += " AND cp.theme = %s"
                 params.append(theme_filter)
 
             order_direction = "ASC" if sort_order.lower() == "asc" else "DESC"
-            query += f" ORDER BY created_at {order_direction}"
+            query += f" ORDER BY cp.created_at {order_direction}"
 
             cursor.execute(query, params)
             progress = cursor.fetchall()

@@ -26,13 +26,14 @@ class DatabaseManager:
     @staticmethod
     def fetch_last_conversation_times(username: str) -> Optional[ConversationTimes]:
         query = """
-            SELECT start_time, end_time
-            FROM conversations
-            WHERE username = %s
-            AND start_time IS NOT NULL
-            AND end_time IS NOT NULL
-            ORDER BY created_at DESC
-            LIMIT 1
+        SELECT cp.start_time, ce.end_time
+        FROM Conversations_parameters cp
+        JOIN Conversations_evaluations ce ON cp.conversation_id = ce.conversation_id
+        WHERE cp.user_name = %s
+        AND cp.start_time IS NOT NULL
+        AND ce.end_time IS NOT NULL
+        ORDER BY cp.created_at DESC
+        LIMIT 1
         """
         with create_db_connection() as conn:
             with conn.cursor() as cursor:
@@ -47,12 +48,13 @@ class DatabaseManager:
         username: str, times: ConversationTimes
     ) -> List[Tuple]:
         query = """
-            SELECT prompt, response, interaction_count
-            FROM conversations
-            WHERE username = %s
-            AND start_time >= %s
-            AND end_time <= %s
-            ORDER BY created_at ASC
+        SELECT user_prompt, bot_messages, interaction_count
+        FROM Conversations_parameters cp
+        JOIN Conversations_evaluations ce ON cp.conversation_id = ce.conversation_id
+        WHERE cp.user_name = %s
+        AND cp.start_time >= %s
+        AND ce.end_time <= %s
+        ORDER BY cp.created_at ASC
         """
         with create_db_connection() as conn:
             with conn.cursor() as cursor:
@@ -64,14 +66,19 @@ class DatabaseManager:
         username: str, evaluation: str, times: ConversationTimes
     ) -> None:
         query = """
-            UPDATE conversations
-            SET evaluation = %s
-            WHERE username = %s AND start_time = %s AND end_time = %s
+        UPDATE Conversations_evaluations
+        SET evaluation = %s, end_time = %s
+        WHERE conversation_id = (
+            SELECT conversation_id
+            FROM Conversations_parameters
+            WHERE user_name = %s AND start_time = %s
+            LIMIT 1
+        )
         """
         with create_db_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    query, (evaluation, username, times.start_time, times.end_time)
+                    query, (evaluation, times.end_time, username, times.start_time)
                 )
                 conn.commit()
 
@@ -81,7 +88,7 @@ class ConversationFormatter:
     def format_conversation(messages: List[Tuple]) -> str:
         formatted_messages = []
         for prompt, response, _ in messages:
-            user_message = f"User: {prompt}" if prompt else ""
+            user_message = f":User  {prompt}" if prompt else ""
             bot_message = f"Instructor: {response}" if response else ""
             if user_message or bot_message:
                 formatted_messages.extend(
@@ -103,6 +110,16 @@ class ConversationFormatter:
         if minutes > 0:
             return f"{minutes:02}:{seconds:02}"
         return f"{seconds}s"
+
+
+def count_user_words(text: str) -> int:
+    return len(text.split())
+
+
+def check_evaluation_criteria(messages: List[Tuple]) -> Tuple[bool, int]:
+    total_user_words = sum(count_user_words(msg[0]) for msg in messages if msg[0])
+    meets_criteria = total_user_words >= 10
+    return meets_criteria, total_user_words
 
 
 class LanguageEvaluator:
@@ -157,8 +174,8 @@ class LanguageEvaluator:
         interaction_count = messages[-1][2] if messages else 0
         duration = times.end_time - times.start_time
 
-        user_words = sum(len(msg[0].split()) for msg in messages if msg[0])
-        if user_words < 10:
+        meets_criteria, total_user_words = check_evaluation_criteria(messages)
+        if not meets_criteria:
             return (
                 "Your conversation didn’t meet the criteria for evaluation. Please send at least 10 words to receive meaningful feedback.",
                 0,
@@ -202,7 +219,10 @@ def get_last_conversation(username: str) -> Tuple[str, int, Optional[datetime]]:
 
 
 def evaluate_last_conversation(username: str, language: str) -> Tuple[str, int, str]:
-    return evaluator.evaluate_conversation(username, language)
+    evaluation, interaction_count, duration = evaluator.evaluate_conversation(
+        username, language
+    )
+    return evaluation, interaction_count, duration
 
 
 __all__ = [
@@ -212,4 +232,6 @@ __all__ = [
     "ConversationFormatter",
     "DatabaseManager",
     "LanguageEvaluator",
+    "count_user_words",
+    "check_evaluation_criteria",
 ]
