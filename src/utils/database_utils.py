@@ -34,7 +34,7 @@ def log_conversation_to_db(
             if is_final:
                 cursor.execute(
                     """
-                    INSERT INTO conversations_parameters (
+                    INSERT INTO Conversations_parameters (
                         user_name, created_at, language, theme, start_time, user_prompt, bot_messages
                     )
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -53,23 +53,23 @@ def log_conversation_to_db(
                 conversation_id = cursor.fetchone()[0]
                 cursor.execute(
                     """
-                    INSERT INTO conversations_evaluations (
-                        conversation_id, evaluation, end_time, duration, interaction_count
+                    INSERT INTO Conversations_evaluations (
+                        conversation_id, duration, interaction_count, end_time, evaluation
                     )
                     VALUES (%s, %s, %s, %s, %s)
                     """,
                     (
                         conversation_id,
-                        evaluation,
-                        end_time,
                         duration,
                         interaction_count,
+                        end_time,
+                        evaluation,
                     ),
                 )
 
                 cursor.execute(
                     """
-                    INSERT INTO conversations_parameters (
+                    INSERT INTO Conversations_parameters (
                         user_name, created_at, language, theme, start_time, user_prompt, bot_messages
                     )
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -101,8 +101,8 @@ def fetch_progress_data(
         with conn.cursor() as cursor:
             query = """
             SELECT cp.created_at, cp.language, cp.theme, ce.duration, ce.interaction_count, ce.evaluation
-            FROM conversations_parameters cp
-            JOIN conversations_evaluations ce ON cp.conversation_id = ce.conversation_id
+            FROM Conversations_parameters cp
+            JOIN Conversations_evaluations ce ON cp.conversation_id = ce.conversation_id
             WHERE cp.user_name = %s
             """
             params = [username]
