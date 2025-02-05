@@ -157,7 +157,6 @@ To improve data organization and query efficiency, we are transforming the datab
 - **user_prompt**
 - **bot_messages**
 
-
 #### Conversations_evaluations
 - **conversation_id**
 - **evaluation**
