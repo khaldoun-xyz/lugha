@@ -161,6 +161,5 @@ To improve data organization and query efficiency, we are transforming the datab
 - **conversation_id**
 - **evaluation**
 - **end_time**
-
 - **duration**
 - **interaction_count**
