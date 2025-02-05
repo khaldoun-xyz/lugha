@@ -27,8 +27,8 @@ class DatabaseManager:
     def fetch_last_conversation_id(username: str) -> Optional[int]:
         query = """
         SELECT cp.start_time, ce.end_time
-        FROM Conversations_parameters cp
-        JOIN Conversations_evaluations ce ON cp.conversation_id = ce.conversation_id
+        FROM conversations_parameters cp
+        JOIN conversations_evaluations ce ON cp.conversation_id = ce.conversation_id
         WHERE cp.user_name = %s
         AND cp.start_time IS NOT NULL
         AND ce.end_time IS NOT NULL
@@ -61,8 +61,8 @@ class DatabaseManager:
     def fetch_conversation_messages(conversation_id: int) -> List[Tuple]:
         query = """
         SELECT user_prompt, bot_messages, interaction_count
-        FROM Conversations_parameters cp
-        JOIN Conversations_evaluations ce ON cp.conversation_id = ce.conversation_id
+        FROM conversations_parameters cp
+        JOIN conversations_evaluations ce ON cp.conversation_id = ce.conversation_id
         WHERE cp.user_name = %s
         AND cp.start_time >= %s
         AND ce.end_time <= %s
@@ -78,11 +78,11 @@ class DatabaseManager:
         conversation_id: int, evaluation: str, end_time: datetime
     ) -> None:
         query = """
-        UPDATE Conversations_evaluations
+        UPDATE conversations_evaluations
         SET evaluation = %s, end_time = %s
         WHERE conversation_id = (
             SELECT conversation_id
-            FROM Conversations_parameters
+            FROM conversations_parameters
             WHERE user_name = %s AND start_time = %s
             LIMIT 1
         )
