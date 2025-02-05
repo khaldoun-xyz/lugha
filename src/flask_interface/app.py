@@ -1,14 +1,9 @@
+# app.py
 from flask import Flask, jsonify, render_template, request
 from flask_socketio import SocketIO
 
 from utils.config import Config, initialize_groq_client
-from utils.conversation_utils import (
-    evaluate_conversation,
-    initialize_conversation,
-    log_end_conversation,
-    process_user_message,
-    restart_conversation_logic,
-)
+from utils.conversation_utils import ConversationManager
 from utils.database_utils import fetch_all_users, fetch_progress_data
 from utils.learning_themes import LEARNING_THEMES
 
@@ -18,13 +13,16 @@ app = Flask(__name__, template_folder="templates")
 socketio = SocketIO(app)
 
 conversations = {}
+conversation_manager = ConversationManager()
 
 
 @app.route("/start-evaluation", methods=["POST"])
 def start_evaluation():
     data = request.json
     username, language, theme = data["username"], data["language"], data["theme"]
-    conversations[username] = initialize_conversation(language, theme, username)
+    conversations[username] = conversation_manager.initialize_conversation(
+        language, theme, username
+    )
     return jsonify({"response": conversations[username]["history"][0]["content"]})
 
 
@@ -32,8 +30,8 @@ def start_evaluation():
 def restart_conversation():
     data = request.json
     username, language, theme = data["username"], data["language"], data["theme"]
-    conversations[username] = restart_conversation_logic(
-        conversations, username, language, theme
+    conversations[username] = conversation_manager.initialize_conversation(
+        language, theme, username
     )
     return jsonify({"response": conversations[username]["history"][0]["content"]})
 
@@ -45,8 +43,8 @@ def chat():
     if username not in conversations:
         return jsonify({"error": "No active conversation found."}), 404
 
-    response = process_user_message(
-        conversations, client, MODEL, username, user_message
+    response = conversation_manager.process_user_message(
+        conversations, username, user_message
     )
     if isinstance(response, dict) and "error" in response:
         return jsonify(response), 500
@@ -59,7 +57,7 @@ def end_conversation():
     if username not in conversations:
         return jsonify({"error": "No active conversation found."}), 404
 
-    summary = log_end_conversation(conversations, username)
+    summary = conversation_manager.end_conversation(conversations, username)
     return jsonify(summary)
 
 
@@ -70,7 +68,9 @@ def evaluate():
     if username not in conversations:
         return jsonify({"error": "No active conversation found."}), 404
 
-    result = evaluate_conversation(conversations, username)
+    result = conversation_manager.evaluate_last_conversation(
+        username, conversations[username]["language"]
+    )
     if isinstance(result, dict) and "error" in result:
         return jsonify(result), 400
     return jsonify({"evaluation": result})
