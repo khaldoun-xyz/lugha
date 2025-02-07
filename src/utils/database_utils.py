@@ -31,59 +31,40 @@ def log_conversation_to_db(
 
     try:
         with conn.cursor() as cursor:
-            if is_final:
-                cursor.execute(
-                    """
-                    INSERT INTO conversations_parameters (
-                        user_name, created_at, language, theme, start_time, user_prompt, bot_messages
-                    )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    RETURNING conversation_id
-                    """,
-                    (
-                        username,
-                        datetime.now(),
-                        language.lower() if language else "unknown",
-                        theme if theme else "unknown",
-                        start_time,
-                        prompt if prompt else "No prompt",
-                        response if response else "No response",
-                    ),
+            cursor.execute(
+                """
+                INSERT INTO conversations_parameters (
+                    user_name, created_at, language, theme, start_time, user_prompt, bot_messages
                 )
-                conversation_id = cursor.fetchone()[0]
-                cursor.execute(
-                    """
-                    INSERT INTO conversations_evaluations (
-                        conversation_id, evaluation, end_time, duration, interaction_count
-                    )
-                    VALUES (%s, %s, %s, %s, %s)
-                    """,
-                    (
-                        conversation_id,
-                        evaluation,
-                        end_time,
-                        duration,
-                        interaction_count,
-                    ),
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING conversation_id
+                """,
+                (
+                    username,
+                    datetime.now(),
+                    language.lower() if language else "unknown",
+                    theme if theme else "unknown",
+                    start_time,
+                    prompt if prompt else "No prompt",
+                    response if response else "No response",
+                ),
+            )
+            conversation_id = cursor.fetchone()[0]
+            cursor.execute(
+                """
+                INSERT INTO conversations_evaluations (
+                    conversation_id, evaluation, end_time, duration, interaction_count
                 )
-
-                cursor.execute(
-                    """
-                    INSERT INTO conversations_parameters (
-                        user_name, created_at, language, theme, start_time, user_prompt, bot_messages
-                    )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    """,
-                    (
-                        username,
-                        datetime.now(),
-                        language.lower() if language else "unknown",
-                        theme if theme else "unknown",
-                        start_time,
-                        prompt if prompt else "No prompt",
-                        response if response else "No response",
-                    ),
-                )
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (
+                    conversation_id,
+                    evaluation,
+                    end_time,
+                    duration,
+                    interaction_count,
+                ),
+            )
             conn.commit()
     except Exception as e:
         print(f"Error logging conversation: {e}")
