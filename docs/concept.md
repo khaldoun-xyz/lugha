@@ -37,7 +37,8 @@ Very simple screen with few options.
 Initially, set a name, a language and a theme.
 Start the conversation.
 
-<img src="./files/lugha-sketch-initial.png" alt="lugha-sketch-initial.png" width="25%" />
+<img src="./files/lugha-sketch-initial.png"
+  alt="lugha-sketch-initial.png" width="25%" />
 
 ### Chat
 
@@ -46,7 +47,8 @@ There are only 2 options: 1) Send a message (send icon)
 or 2) finish your conversation
 & get an evaluation (top bar in red).
 
-<img src="./files/lugha-sketch-chat.png" alt="lugha-sketch-chat.png" width="25%" />
+<img src="./files/lugha-sketch-chat.png"
+  alt="lugha-sketch-chat.png" width="25%" />
 
 ### Evaluation
 
@@ -59,79 +61,37 @@ If this criterion isn't met, the user sees this friendly message:
 *"Your conversation didn’t meet the criteria for evaluation.
 Please send at least 10 words to receive a meaningful feedback."*
 
-<img src="./files/lugha-sketch-evaluation.png" alt="lugha-sketch-evaluation.png" width="25%" />
+<img src="./files/lugha-sketch-evaluation.png"
+  alt="lugha-sketch-evaluation.png" width="25%" />
 
 ### Log
 
-The log screen shows a full list of all
-past (now locked) conversations and their evaluations
-(see evaluation screen). A user can initiate
-a new conversation here. When he clicks “NEW”,
-the user sees the same options as on the Welcome screen.
-Also, a user can see a graph that depicts his
-progress.
+The log screen shows a list of past conversations.
+This list is similar in style to an overview screen
+with all ongoing chats in chat apps like Telegram.
+Each conversation in that list shows the start_date of
+that conversation and the overall score.
 
-#### Progress graph
+<img src="./files/lugha-sketch-log-base.png"
+  alt="lugha-sketch-log-base.png" width="25%" />
 
-A **bar chart** presents a multivariable analysis:
+When a user clicks on a conversation,
+a pop up opens that shows the evaluation that
+the user received for that conversation.
 
-- **X-axis**: Dates (day/month).
-- **Y-axis**: Overall scores (0%–100%) for each day
-(calculated as the average rating of all conversations for that day).
+<img src="./files/lugha-sketch-log-popup.png"
+  alt="lugha-sketch-log-popup.png" width="25%" />
 
-Additional details:
-
-- Bars display total conversation duration (in minutes) at the top.
-- Scores and durations are stored in a database.
-- A **horizontal scrollbar** allows exploration of historical data.
-
-**Note:** The dashboard appears after **7 days** of usage.
-Before then, users see:
-*"You’ll receive visualizations of your progress after completing 7 days of conversations."*
-
-**Optimization:**
-To enhance dashboard performance, we created a dedicated table with these columns:
-
-- **Date**: Stores the day (date only, no time).
-- **Overall Score**: Aggregated from the evaluation field for all conversations on that day.
-- **Total Duration**: Sum of all conversation durations for that day in minutes.
-
-This table auto-updates after each completed conversation, ensuring real-time data without repeated fetching or calculations.
-
-#### Dashboard Features
-
-A **bar chart** presents a multivariable analysis:
-
-- **X-axis**: Dates (day/month).
-- **Y-axis**: Overall scores (0%–100%) for each day
-(calculated as the average rating of all conversations for that day).
-
-Additional details:
-
-- Bars display total conversation duration (in minutes) at the top.
-- Scores and durations are stored in a database.
-- A **horizontal scrollbar** allows exploration of historical data.
-
-**Note:** The dashboard appears after **7 days** of usage.
-Before then, users see:
-*"You’ll receive visualizations of your progress after completing 7 days of conversations."*
-
-**Optimization:**
-To enhance dashboard performance, we created a dedicated table with these columns:
-- **Date**: Stores the day (date only, no time).
-- **Overall Score**: Aggregated from the evaluation field for all conversations on that day.
-- **Total Duration**: Sum of all conversation durations for that day in minutes.
-
-This table auto-updates after each completed conversation, ensuring real-time data without repeated fetching or calculations.
-
-<img src="./files/lugha-sketch-log.png" alt="lugha-sketch-log.png" width="25%" />
+On the log screen, when a user clicks on the “NEW” button in the
+bottom right corner, the user can initiate a new conversation.
 
 ### Coach
 
 The coach screen shows a dropdown where a coach
 can select a user name, whose log is then shown.
 
-<img src="./files/lugha-sketch-coach.png" alt="lugha-sketch-coach.png" width="25%" />
+<img src="./files/lugha-sketch-coach.png"
+  alt="lugha-sketch-coach.png" width="25%" />
 
 ## Monitoring: Uptime & usage KPIs
 
@@ -145,22 +105,23 @@ It also checks usage statistics. Once a week, it sends an
 
 ## Database design
 
-To improve data organization and query efficiency, we are transforming the database into a **star schema model**.
+The data is stored in a star schema model.
 
-#### Conversations_parameters
-- **conversation_id** (Primary Key)
-- **user_name**
-- **created_at**
-- **language**
-- **theme**
-- **start_time**
-- **user_prompt**
-- **bot_messages**
-- **end_time**
+### conversations_parameters
 
+- conversation_id (Primary Key)
+- user_name
+- created_at
+- language
+- theme
+- start_time
+- user_prompt
+- bot_messages
+- end_time
 
-#### Conversations_evaluations
-- **conversation_id**
-- **evaluation**
-- **duration**
-- **interaction_count**
+### conversations_evaluations
+
+- conversation_id
+- evaluation
+- duration
+- interaction_count
