@@ -67,19 +67,17 @@ Please send at least 10 words to receive a meaningful feedback."*
 ### Log
 
 The log screen shows a list of past conversations.
-This list is similar in style to an overview screen
-with all ongoing chats in chat apps like Telegram.
 Each conversation in that list shows the start_date of
-that conversation and the overall score.
+that conversation, the language the user used and the overall score.
 
 <img src="./files/lugha-sketch-log-base.png"
   alt="lugha-sketch-log-base.png" width="25%" />
 
 When a user clicks on a conversation,
-a pop up opens that shows the evaluation that
+an accordeon opens that shows the full evaluation that
 the user received for that conversation.
 
-<img src="./files/lugha-sketch-log-popup.png"
+<img src="./files/lugha-sketch-log-accordeon.png"
   alt="lugha-sketch-log-popup.png" width="25%" />
 
 On the log screen, when a user clicks on the “NEW” button in the
