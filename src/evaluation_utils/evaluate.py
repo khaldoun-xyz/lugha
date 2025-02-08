@@ -48,6 +48,7 @@ class DatabaseManager:
         FROM conversations_parameters cp
         LEFT JOIN conversations_evaluations ce ON cp.conversation_id = ce.conversation_id
         WHERE cp.conversation_id = %s
+        LIMIT 1
         """
         with create_db_connection() as conn:
             with conn.cursor() as cursor:
@@ -58,7 +59,9 @@ class DatabaseManager:
                 return None
 
     @staticmethod
-    def fetch_conversation_messages(conversation_id: int) -> List[Tuple]:
+    def fetch_conversation_messages(
+        username: str, times: ConversationTimes
+    ) -> List[Tuple]:
         query = """
         SELECT user_prompt, bot_messages, interaction_count
         FROM conversations_parameters cp
@@ -70,12 +73,12 @@ class DatabaseManager:
         """
         with create_db_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(query, (conversation_id,))
+                cursor.execute(query, (username, times.start_time, times.end_time))
                 return cursor.fetchall()
 
     @staticmethod
     def log_evaluation(
-        conversation_id: int, evaluation: str, end_time: datetime
+        username: str, evaluation: str, times: ConversationTimes
     ) -> None:
         query = """
         UPDATE conversations_evaluations
@@ -178,14 +181,17 @@ class LanguageEvaluator:
         if not conversation_id:
             return "No conversation found.", 0, "00:00"
 
-        messages = self.db.fetch_conversation_messages(conversation_id)
+        times = self.db.fetch_conversation_times(conversation_id)
+        if not times:
+            return "No conversation times found.", 0, "00:00"
+
+        messages = self.db.fetch_conversation_messages(username, times)
         if not messages:
             return "No messages found.", 0, "00:00"
 
         formatted_conversation = ConversationFormatter.format_conversation(messages)
         interaction_count = messages[-1][2] if messages else 0
-        times = self.db.fetch_conversation_times(conversation_id)
-        duration = times.end_time - times.start_time if times else None
+        duration = times.end_time - times.start_time
 
         meets_criteria, total_user_words = check_evaluation_criteria(messages)
         if not meets_criteria:
@@ -200,9 +206,7 @@ class LanguageEvaluator:
         )
         evaluation = self.get_evaluation(evaluation_prompt)
 
-        self.db.log_evaluation(
-            conversation_id, evaluation, times.end_time if times else datetime.now()
-        )
+        self.db.log_evaluation(username, evaluation, times)
 
         return (
             evaluation,
@@ -221,15 +225,17 @@ def format_duration(duration: Optional[datetime]) -> str:
 def get_last_conversation(username: str) -> Tuple[str, int, Optional[datetime]]:
     db = DatabaseManager()
     conversation_id = db.fetch_last_conversation_id(username)
-
     if not conversation_id:
         return "", 0, None
 
-    messages = db.fetch_conversation_messages(conversation_id)
+    times = db.fetch_conversation_times(conversation_id)
+    if not times:
+        return "", 0, None
+
+    messages = db.fetch_conversation_messages(username, times)
     formatted_conversation = ConversationFormatter.format_conversation(messages)
     interaction_count = messages[-1][2] if messages else 0
-    times = db.fetch_conversation_times(conversation_id)
-    duration = times.end_time - times.start_time if times else None
+    duration = times.end_time - times.start_time
 
     return formatted_conversation, interaction_count, duration
 
