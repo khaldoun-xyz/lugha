@@ -89,24 +89,17 @@
                         $('#progress-container').show().empty();
                         if (Array.isArray(data.progress) && data.progress.length > 0) {
                             data.progress.forEach(item => {
-                                const formattedEvaluation = item.evaluation
-                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                                    .replace(/\n/g, '<br>');
+                                const overallScorePattern = /\* Overall Score:\s*(\d+)%/;
+                                let formattedEvaluation = "";
 
+                                const match = item.evaluation.match(overallScorePattern);
+                                if (match) {
+                                formattedEvaluation = `Overall Score: ${match[1]}%<br>`;}
                                 $('#progress-container').append(`
                                     <div class="progress-item">
                                         <div class="progress-item-header">
                                             <strong><i data-feather="calendar"></i> ${item.date}</strong>
-                                            <span><i data-feather="globe"></i> ${item.language} | <i data-feather="bookmark"></i> ${item.theme}</span>
-                                        </div>
-                                        <div class="progress-item-body">
-                                            <p><strong><i data-feather="clock"></i> Duration:</strong> ${item.duration}</p>
-                                            <p><strong><i data-feather="message-circle"></i> Interactions:</strong> ${item.interaction_count}</p>
-                                            <div class="evaluation-section">
-                                                <strong><i data-feather="check-circle"></i> Evaluation:</strong>
-                                                <div class="evaluation-content">${formattedEvaluation}</div>
-                                            </div>
+                                            <span><i data-feather="globe"></i> ${item.language} |  ${formattedEvaluation}</span>
                                         </div>
                                     </div>
                                 `);
