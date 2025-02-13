@@ -137,7 +137,7 @@
 }
 
 .progress-item-header strong {
-    color: var(--dark-primary);
+    color: var(--dark-primary); 
 }
 
 .arrow {
@@ -286,7 +286,7 @@ summary::-webkit-details-marker {
         font-size: 0.85rem;
         margin-bottom: 24px;
     }
-
+    
     .progress-item-header {
         font-size: 0.8rem;
     }
