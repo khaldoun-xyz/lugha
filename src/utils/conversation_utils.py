@@ -110,18 +110,14 @@ class ConversationManager:
             return {"error": "Conversation already ended"}
 
         end_time = datetime.now()
-        duration = end_time - conversation["start_time"]  # Calculate duration once
-
-        messages = [
-            (msg["content"], "", 0)
-            for msg in conversation["history"]
-            if msg["role"] == "user"
-        ]
-
-        evaluation = evaluate_last_conversation(username, conversation["language"])
+        duration = end_time - conversation["start_time"]
+        evaluation_result = evaluate_last_conversation(
+            username, conversation["language"]
+        )
+        evaluation_text = evaluation_result[0]
         success = log_evaluation_to_db(
             conversation["conversation_id"],
-            evaluation[0],
+            evaluation_text,
             end_time,
             duration,
             conversation["interaction_count"],
@@ -131,21 +127,15 @@ class ConversationManager:
             return {"error": "Failed to log evaluation"}
 
         conversation["ended"] = True
+        formatted_duration = format_duration(duration)
 
         result = {
             "interaction_count": conversation["interaction_count"],
-            "total_duration": format_duration(duration),
-            "evaluation": evaluation[0],
+            "total_duration": formatted_duration,
+            "evaluation": evaluation_text,
             "theme": conversation["theme"],
             "language": conversation["language"],
         }
 
         del conversations[username]
         return result
-
-    def _get_evaluation(
-        self, username: str, conversation: Dict[str, Any], meets_criteria: bool
-    ) -> Optional[str]:
-        if meets_criteria:
-            return evaluate_last_conversation(username, conversation["language"])[0]
-        return None

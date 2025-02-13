@@ -210,15 +210,6 @@ class LanguageEvaluator:
             )
             evaluation = self.get_evaluation(evaluation_prompt)
 
-            if evaluation and not evaluation.startswith("Evaluation error"):
-                self.db.log_evaluation(
-                    conversation_id,
-                    evaluation,
-                    times.end_time,
-                    duration,
-                    interaction_count,
-                )
-
             return (
                 evaluation,
                 interaction_count,

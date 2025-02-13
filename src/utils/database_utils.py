@@ -44,35 +44,20 @@ def log_evaluation_to_db(
             with conn.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT evaluation_id FROM conversations_evaluations
-                    WHERE conversation_id = %s
+                    INSERT INTO conversations_evaluations
+                    (conversation_id, evaluation, end_time, duration, interaction_count)
+                    VALUES (%s, %s, %s, %s, %s)
                     """,
-                    (conversation_id,),
+                    (
+                        conversation_id,
+                        evaluation,
+                        end_time,
+                        duration,
+                        interaction_count,
+                    ),
                 )
-                existing_evaluation = cursor.fetchone()
-
-                if existing_evaluation:
-                    print(
-                        f"Evaluation already exists for conversation_id: {conversation_id}. Skipping insertion."
-                    )
-                    return True
-                else:
-                    cursor.execute(
-                        """
-                        INSERT INTO conversations_evaluations
-                        (conversation_id, evaluation, end_time, duration, interaction_count)
-                        VALUES (%s, %s, %s, %s, %s)
-                        """,
-                        (
-                            conversation_id,
-                            evaluation,
-                            end_time,
-                            duration,
-                            interaction_count,
-                        ),
-                    )
-                    conn.commit()
-                    return True
+                conn.commit()
+                return True
         except Exception as e:
             print(f"Error logging evaluation: {e}")
             conn.rollback()
