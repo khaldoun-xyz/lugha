@@ -137,7 +137,7 @@
 }
 
 .progress-item-header strong {
-    color: var(--dark-primary); 
+    color: var(--dark-primary);
 }
 
 .arrow {
@@ -170,15 +170,15 @@ summary::-webkit-details-marker {
     line-height: 1.6;
 }
 .progress-item-header .feather {
-    width: 14px; 
-    height: 14px; 
+    width: 14px;
+    height: 14px;
     vertical-align: middle;
-    margin-right: 6px; 
+    margin-right: 6px;
 }
 .progress-item-body .feather {
     width: 14px;
     height: 14px;
-    vertical-align: middle; 
+    vertical-align: middle;
     margin-right: 6px;
 }
 
@@ -189,12 +189,12 @@ summary::-webkit-details-marker {
 }
 #back-to-chat {
     position: fixed;
-    bottom: 20px; 
-    right: 20px; 
+    bottom: 20px;
+    right: 20px;
     z-index: 1000;
-    padding: 10px 16px; 
-    font-size: 16px; 
-    width: auto; 
+    padding: 10px 16px;
+    font-size: 16px;
+    width: auto;
     height: auto;
     display: inline-flex;
     align-items: center;
@@ -207,7 +207,7 @@ summary::-webkit-details-marker {
 }
 
 #back-to-chat i {
-    width: 14px; 
+    width: 14px;
     height: 14px;
     margin-right: 4px;
 }
@@ -282,27 +282,27 @@ summary::-webkit-details-marker {
         width: 100%;
     }
     .progress-item {
-        padding: var(--spacing-md); 
-        font-size: 0.85rem; 
-        margin-bottom: 24px; 
+        padding: var(--spacing-md);
+        font-size: 0.85rem;
+        margin-bottom: 24px;
     }
-    
+
     .progress-item-header {
-        font-size: 0.8rem; 
+        font-size: 0.8rem;
     }
-    
+
     .progress-container {
-        gap: var(--spacing-md); 
+        gap: var(--spacing-md);
     }
-    
+
     .arrow {
-            width: 10px;  
-            height: 10px; 
-            padding: 3px; 
+            width: 10px;
+            height: 10px;
+            padding: 3px;
         }
     #back-to-chat {
             padding: 4px 8px;
-            font-size: 10px; 
+            font-size: 10px;
             bottom: 20px;
         }
     #back-to-chat i {
@@ -310,4 +310,4 @@ summary::-webkit-details-marker {
             height: 12px;
             margin-right: 3px;
         }
-    }    
+    }

@@ -22,7 +22,7 @@
         <div class="button-group">
             <button id="back-to-chat" class="btn">
                 <i data-feather="message-circle"></i> New Conversation
-            </button>       
+            </button>
         </div>
     </div>
 {% endblock %}
@@ -61,9 +61,9 @@
                                 if (match) {
                                 formattedEvaluation = `Score: ${match[1]}%<br>`;}
                                 let structuredEvaluation = item.evaluation
-                                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
-                                .replace(/\*(.*?)\*/g, '<em>$1</em>') 
-                                .replace(/\n/g, '<br>'); 
+                                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                .replace(/\n/g, '<br>');
                                 $('#progress-container').append(`
                                     <details class="progress-item">
                                          <summary class="progress-item-header">
