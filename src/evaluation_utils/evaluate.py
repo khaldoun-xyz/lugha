@@ -5,7 +5,7 @@ from typing import Any, List, Optional, Tuple
 
 from utils.config import Config, create_db_connection, initialize_groq_client
 
-client = initialize_groq_client()
+CLIENT = initialize_groq_client()
 MODEL = Config.MODEL
 
 
@@ -220,7 +220,7 @@ class LanguageEvaluator:
             return f"Error during evaluation: {str(e)}", 0, "00:00"
 
 
-evaluator = LanguageEvaluator(client, MODEL)
+EVALUATOR = LanguageEvaluator(CLIENT, MODEL)
 
 
 def format_duration(duration: Optional[datetime]) -> str:
@@ -246,7 +246,7 @@ def get_last_conversation(username: str) -> Tuple[str, int, Optional[datetime]]:
 
 
 def evaluate_last_conversation(username: str, language: str) -> Tuple[str, int, str]:
-    return evaluator.evaluate_conversation(username, language)
+    return EVALUATOR.evaluate_conversation(username, language)
 
 
 __all__ = [

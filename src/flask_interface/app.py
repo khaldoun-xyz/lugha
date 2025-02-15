@@ -13,18 +13,18 @@ MODEL = Config.MODEL
 app = Flask(__name__, template_folder="templates")
 socketio = SocketIO(app)
 
-conversations = {}
-conversation_manager = ConversationManager()
+CONVERSATIONS = {}
+CONVERSATION_MANAGER = ConversationManager()
 
 
 @app.route("/start-evaluation", methods=["POST"])
 def start_evaluation():
     data = request.json
     username, language, theme = data["username"], data["language"], data["theme"]
-    conversation_data = conversation_manager.initialize_conversation(
+    conversation_data = CONVERSATION_MANAGER.initialize_conversation(
         language, theme, username
     )
-    conversations[username] = conversation_data
+    CONVERSATIONS[username] = conversation_data
     return jsonify({"response": conversation_data["history"][0]["content"]})
 
 
@@ -32,10 +32,10 @@ def start_evaluation():
 def restart_conversation():
     data = request.json
     username, language, theme = data["username"], data["language"], data["theme"]
-    conversation_data = conversation_manager.initialize_conversation(
+    conversation_data = CONVERSATION_MANAGER.initialize_conversation(
         language, theme, username
     )
-    conversations[username] = conversation_data
+    CONVERSATIONS[username] = conversation_data
     return jsonify({"response": conversation_data["history"][0]["content"]})
 
 
@@ -43,11 +43,11 @@ def restart_conversation():
 def chat():
     data = request.json
     username, user_message = data["username"], data["message"]
-    if username not in conversations:
+    if username not in CONVERSATIONS:
         return jsonify({"error": "No active conversation found."}), 404
 
-    response = conversation_manager.process_user_message(
-        conversations, username, user_message
+    response = CONVERSATION_MANAGER.process_user_message(
+        CONVERSATIONS, username, user_message
     )
     if isinstance(response, dict) and "error" in response:
         return jsonify(response), 500
@@ -55,12 +55,12 @@ def chat():
 
 
 @app.route("/end-conversation", methods=["POST"])
-def end_conversation_route():
+def end_conversation():
     username = request.json["username"]
-    if username not in conversations:
+    if username not in CONVERSATIONS:
         return jsonify({"error": "No active conversation found."}), 404
 
-    summary = conversation_manager.log_end_conversation(conversations, username)
+    summary = CONVERSATION_MANAGER.log_end_conversation(CONVERSATIONS, username)
     return jsonify(summary)
 
 
@@ -68,10 +68,10 @@ def end_conversation_route():
 def evaluate():
     data = request.json
     username = data.get("username")
-    if username not in conversations:
+    if username not in CONVERSATIONS:
         return jsonify({"error": "No active conversation found."}), 404
 
-    result = evaluate_last_conversation(username, conversations[username]["language"])
+    result = evaluate_last_conversation(username, CONVERSATIONS[username]["language"])
     if isinstance(result, dict) and "error" in result:
         return jsonify(result), 400
     return jsonify({"evaluation": result})

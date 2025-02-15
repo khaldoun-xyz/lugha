@@ -15,7 +15,7 @@ from utils.database_utils import (
     log_message_to_db,
 )
 
-client = initialize_groq_client()
+CLIENT = initialize_groq_client()
 MODEL = Config.MODEL
 
 
@@ -30,7 +30,7 @@ class ConversationManager:
 
     def get_groq_response(self, conversation_history: List[Dict[str, str]]) -> str:
         try:
-            chat_completion = client.chat.completions.create(
+            chat_completion = CLIENT.chat.completions.create(
                 messages=conversation_history,
                 model=MODEL,
             )
@@ -88,7 +88,7 @@ class ConversationManager:
                 "history"
             ]
 
-            chat_completion = client.chat.completions.create(
+            chat_completion = CLIENT.chat.completions.create(
                 messages=history, model=MODEL
             )
             response = self.clean_response(chat_completion.choices[0].message.content)
