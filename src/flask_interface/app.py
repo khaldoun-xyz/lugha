@@ -1,14 +1,10 @@
+# app.py
 from flask import Flask, jsonify, render_template, request
 from flask_socketio import SocketIO
 
+from evaluation_utils.evaluate import evaluate_last_conversation
 from utils.config import Config, initialize_groq_client
-from utils.conversation_utils import (
-    evaluate_conversation,
-    initialize_conversation,
-    log_end_conversation,
-    process_user_message,
-    restart_conversation_logic,
-)
+from utils.conversation_utils import ConversationManager
 from utils.database_utils import fetch_all_users, fetch_progress_data
 from utils.learning_themes import LEARNING_THEMES
 
@@ -17,36 +13,41 @@ MODEL = Config.MODEL
 app = Flask(__name__, template_folder="templates")
 socketio = SocketIO(app)
 
-conversations = {}
+CONVERSATIONS = {}
+CONVERSATION_MANAGER = ConversationManager()
 
 
 @app.route("/start-evaluation", methods=["POST"])
 def start_evaluation():
     data = request.json
     username, language, theme = data["username"], data["language"], data["theme"]
-    conversations[username] = initialize_conversation(language, theme, username)
-    return jsonify({"response": conversations[username]["history"][0]["content"]})
+    conversation_data = CONVERSATION_MANAGER.initialize_conversation(
+        language, theme, username
+    )
+    CONVERSATIONS[username] = conversation_data
+    return jsonify({"response": conversation_data["history"][0]["content"]})
 
 
 @app.route("/restart-conversation", methods=["POST"])
 def restart_conversation():
     data = request.json
     username, language, theme = data["username"], data["language"], data["theme"]
-    conversations[username] = restart_conversation_logic(
-        conversations, username, language, theme
+    conversation_data = CONVERSATION_MANAGER.initialize_conversation(
+        language, theme, username
     )
-    return jsonify({"response": conversations[username]["history"][0]["content"]})
+    CONVERSATIONS[username] = conversation_data
+    return jsonify({"response": conversation_data["history"][0]["content"]})
 
 
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.json
     username, user_message = data["username"], data["message"]
-    if username not in conversations:
+    if username not in CONVERSATIONS:
         return jsonify({"error": "No active conversation found."}), 404
 
-    response = process_user_message(
-        conversations, client, MODEL, username, user_message
+    response = CONVERSATION_MANAGER.process_user_message(
+        CONVERSATIONS, username, user_message
     )
     if isinstance(response, dict) and "error" in response:
         return jsonify(response), 500
@@ -56,10 +57,10 @@ def chat():
 @app.route("/end-conversation", methods=["POST"])
 def end_conversation():
     username = request.json["username"]
-    if username not in conversations:
+    if username not in CONVERSATIONS:
         return jsonify({"error": "No active conversation found."}), 404
 
-    summary = log_end_conversation(conversations, username)
+    summary = CONVERSATION_MANAGER.log_end_conversation(CONVERSATIONS, username)
     return jsonify(summary)
 
 
@@ -67,10 +68,10 @@ def end_conversation():
 def evaluate():
     data = request.json
     username = data.get("username")
-    if username not in conversations:
+    if username not in CONVERSATIONS:
         return jsonify({"error": "No active conversation found."}), 404
 
-    result = evaluate_conversation(conversations, username)
+    result = evaluate_last_conversation(username, CONVERSATIONS[username]["language"])
     if isinstance(result, dict) and "error" in result:
         return jsonify(result), 400
     return jsonify({"evaluation": result})
@@ -149,8 +150,8 @@ def admin_page():
 
 @app.route("/api/conversations/<username>")
 def get_conversations(username):
-    conversations = fetch_progress_data(username)
-    return jsonify(conversations)
+    conversations_data = fetch_progress_data(username)
+    return jsonify(conversations_data)
 
 
 @app.route("/api/users")
