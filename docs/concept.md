@@ -105,21 +105,29 @@ It also checks usage statistics. Once a week, it sends an
 
 The data is stored in a star schema model.
 
-### conversations_parameters
+### conversations_sessions
 
 - conversation_id (Primary Key)
-- user_name
+- username
 - created_at
 - language
 - theme
 - start_time
+
+### conversations_messages
+
+- message_id (Primary Key)
+- conversation_id (Foreign Key)
+- created_at
 - user_prompt
-- bot_messages
-- end_time
+- bot_message
 
 ### conversations_evaluations
 
-- conversation_id
+- evaluation_id (Primary Key)
+- conversation_id (Foreign Key)
+- created_at
+- end_time
 - evaluation
-- duration
 - interaction_count
+- duration
