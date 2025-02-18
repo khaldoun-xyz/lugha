@@ -8,7 +8,6 @@
         <div class="logo-text">Lugha</div>
     </div>
     <h1 class="welcome-title">Admin <span>Panel</span></h1>
-    <p class="welcome-subtitle">View User Conversation History</p>
 
     <div class="form-container">
         <div class="form-group">
@@ -49,27 +48,38 @@
                             $('#conversation-history').empty();
                             if (data.length > 0) {
                                 data.forEach(convo => {
-                                    const formattedEvaluation = convo.evaluation
-                                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                                        .replace(/\n/g, '<br>');
+                                    if (convo.interaction_count > 0 && convo.evaluation.trim() !== "Your conversation didn't meet the criteria for evaluation. Please send at least 10 words to receive meaningful feedback.") {
+                                const overallScorePattern = /[-*] Overall Score:\s*(\d+)%/;
+                                let formattedEvaluation = "";
+
+                                const match = convo.evaluation.match(overallScorePattern);
+                                if (match) {
+                                formattedEvaluation = `Score: ${match[1]}%<br>`;}
+                                let structuredEvaluation = convo.evaluation
+                                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                .replace(/\n/g, '<br>');
 
                                     $('#conversation-history').append(`
-                                        <div class="progress-item">
-                                            <div class="progress-item-header">
+                                        <details class="progress-item">
+                                            <summary class="progress-item-header">
                                                 <strong><i data-feather="calendar"></i> ${convo.date}</strong>
-                                                <span><i data-feather="globe"></i> ${convo.language} | <i data-feather="bookmark"></i> ${convo.theme}</span>
-                                            </div>
+                                                <span><i data-feather="globe"></i> ${convo.language} | ${formattedEvaluation}</span>
+                                                <i class="arrow"></i> <!-- Arrow icon -->
+                                            </summary>
                                             <div class="progress-item-body">
                                                 <p><strong><i data-feather="clock"></i> Duration:</strong> ${convo.duration}</p>
                                                 <p><strong><i data-feather="message-circle"></i> Interactions:</strong> ${convo.interaction_count}</p>
+                                                <p><strong><i data-feather="tag"></i> Theme:</strong> ${convo.theme}</p>
                                                 <div class="evaluation-section">
                                                     <strong><i data-feather="check-circle"></i> Evaluation:</strong>
-                                                    <div class="evaluation-content">${formattedEvaluation}</div>
+                                                    <div class="evaluation-content">${structuredEvaluation}</div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </details>
+
                                     `);
+                                    }
                                 });
                             } else {
                                 $('#conversation-history').append(`
