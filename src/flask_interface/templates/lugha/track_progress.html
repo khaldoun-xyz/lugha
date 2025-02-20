@@ -53,7 +53,7 @@
                         $('#progress-container').show().empty();
                         if (Array.isArray(data.progress) && data.progress.length > 0) {
                             data.progress.forEach(item => {
-                                if (item.interaction_count > 0) {
+                                if (item.interaction_count > 0 && item.evaluation.trim() !== "Your conversation didn't meet the criteria for evaluation. Please send at least 10 words to receive meaningful feedback.") {
                                 const overallScorePattern = /[-*] Overall Score:\s*(\d+)%/;
                                 let formattedEvaluation = "";
 
