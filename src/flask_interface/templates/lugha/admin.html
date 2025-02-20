@@ -24,13 +24,7 @@
     <div id="loading-indicator" style="display: none;">Loading...</div>
     <div id="conversation-history" class="progress-container" style="margin-top: 20px;"></div>
 
-    <div class="message-description">
-        <div class="button-group">
-            <button id="back-to-home" class="btn">
-                <i data-feather="rewind"></i> Reset and Rewind
-            </button>
-        </div>
-    </div>
+
 {% endblock %}
 
 {% block extra_scripts %}
@@ -102,9 +96,7 @@
                 }
             });
 
-            $('#back-to-home').click(function() {
-                window.location.href = '/';
-            });
+
         });
     </script>
 {% endblock %}
