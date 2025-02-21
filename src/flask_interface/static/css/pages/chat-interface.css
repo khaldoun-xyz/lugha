@@ -128,7 +128,7 @@
     padding: var(--spacing-md);
     margin-bottom: var(--spacing-sm);
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     gap: var(--spacing-md);
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
