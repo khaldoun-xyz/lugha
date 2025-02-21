@@ -129,13 +129,15 @@
             }
 
             function scrollChatToBottom() {
-                const chatBox = document.getElementById('chat-box');
-                chatBox.scrollTop = chatBox.scrollHeight;
+
+            const chatBox = document.getElementById('chat-box');
+            chatBox.scrollTop = 0;
+
             }
 
             function appendMessage(sender, message) {
                 const messageClass = sender === Lugha ? 'bot-message' : 'user-message';
-                $('#chat-box').append(`
+                $('#chat-box').prepend(`
                     <div class="message-bubble ${messageClass}">
                         <strong>${sender}:</strong> ${message}
                     </div>
