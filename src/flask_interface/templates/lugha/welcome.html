@@ -42,13 +42,13 @@
                         </select>
                     </div>
                     <div class="form-group-half">
-                        <label for="theme">
-                            <i data-feather="bookmark"></i> Preferred Theme:
+                        <label for="mode">
+                            <i data-feather="bookmark"></i> Preferred Mode:
                         </label>
-                        <select class="form-control dropdown-select" id="theme">
-                            {% for theme in learning_themes %}
-                            <option value="{{ theme }}">{{ theme }}</option>
-                            {% endfor %}
+                        <select class="form-control dropdown-select" id="mode">
+
+                            <option value="talk">Talk</option>
+                            <option value="learn">Learn</option>
                         </select>
                     </div>
                 </div>
@@ -69,13 +69,13 @@
             $('#start-conversation').click(function () {
                 const username = $('#username').val();
                 const language = $('#language').val();
-                const theme = $('#theme').val();
+                const mode = $('#mode').val();
 
                 localStorage.setItem("username", username);
                 localStorage.setItem("language", language);
-                localStorage.setItem("theme", theme);
-                if (username && language && theme) {
-                    window.location.href = `/chat-interface?username=${encodeURIComponent(username)}&language=${encodeURIComponent(language)}&theme=${encodeURIComponent(theme)}`;
+                localStorage.setItem("mode", mode);
+                if (username && language && mode) {
+                    window.location.href = `/chat-interface?username=${encodeURIComponent(username)}&language=${encodeURIComponent(language)}&mode=${encodeURIComponent(mode)}`;
                 } else {
                     alert('Please fill in all required fields.');
                 }

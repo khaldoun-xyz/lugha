@@ -6,7 +6,7 @@ from evaluation_utils.evaluate import format_duration
 from utils.config import create_db_connection
 
 
-def log_conversation_to_db(username: str, language: str, theme: str) -> int:
+def log_conversation_to_db(username: str, language: str, mode: str) -> int:
     with create_db_connection() as conn:
         if conn is None:
             return -1
@@ -15,11 +15,11 @@ def log_conversation_to_db(username: str, language: str, theme: str) -> int:
             with conn.cursor() as cursor:
                 cursor.execute(
                     """
-                    INSERT INTO conversations_sessions (username, language, theme, start_time)
+                    INSERT INTO conversations_sessions (username, language, mode, start_time)
                     VALUES (%s, %s, %s, %s)
                     RETURNING conversation_id
                     """,
-                    (username, language, theme, datetime.now()),
+                    (username, language, mode, datetime.now()),
                 )
                 conversation_id = cursor.fetchone()[0]
                 conn.commit()
@@ -86,8 +86,6 @@ def log_message_to_db(conversation_id: int, user_prompt: str, bot_message: str) 
 def fetch_progress_data(
     username: str,
     sort_order: str = "desc",
-    language_filter: str = "all",
-    theme_filter: str = "all",
 ) -> Optional[List[Dict]]:
     with create_db_connection() as conn:
         if conn is None:
@@ -96,20 +94,12 @@ def fetch_progress_data(
         try:
             with conn.cursor() as cursor:
                 query = """
-                    SELECT cs.created_at, cs.language, cs.theme, ce.duration, ce.interaction_count, ce.evaluation
+                    SELECT cs.created_at, cs.language,cs.mode, ce.duration, ce.interaction_count, ce.evaluation
                     FROM conversations_sessions cs
                     LEFT JOIN conversations_evaluations ce ON cs.conversation_id = ce.conversation_id
                     WHERE cs.username = %s
                 """
                 params = [username]
-                if language_filter != "all":
-                    query += " AND LOWER(cs.language) = LOWER(%s)"
-                    params.append(language_filter)
-
-                if theme_filter != "all":
-                    query += " AND cs.theme = %s"
-                    params.append(theme_filter)
-
                 order_direction = "ASC" if sort_order.lower() == "asc" else "DESC"
                 query += f" ORDER BY cs.created_at {order_direction}"
 
@@ -121,7 +111,7 @@ def fetch_progress_data(
                         (
                             created_at,
                             language,
-                            theme,
+                            mode,
                             duration,
                             interaction_count,
                             evaluation,
@@ -130,7 +120,7 @@ def fetch_progress_data(
                             {
                                 "date": created_at.strftime("%Y-%m-%d %H:%M:%S"),
                                 "language": language.capitalize(),
-                                "theme": theme,
+                                "mode": mode,
                                 "duration": format_duration(duration),
                                 "interaction_count": interaction_count,
                                 "evaluation": (

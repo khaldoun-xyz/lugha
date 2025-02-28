@@ -38,27 +38,48 @@ class ConversationManager:
         except Exception as e:
             return f"Error: {e}"
 
-    def create_system_prompt(self, language: str, username: str, theme: str) -> str:
-        return (
-            f"As a certified {language} instructor, I will communicate with {username} exclusively in {language}. "
-            f"Our conversations will be tailored to a beginner's level, maintaining natural conversational patterns "
-            f"while exploring the theme of {theme}. Responses will be limited to 50 words."
-        )
+    def create_system_prompt(self, language: str, username: str, mode: str) -> str:
+        if mode == "learn":
+            return (
+                f"As a certified {language} instructor, you are required to speak primarily in {language} during our lessons. "
+                f"You will translate your sentences into English to ensure {username} understands each phrase. In addition, you will "
+                f"correct {username}'s messages, providing explanations when needed to clarify any mistakes. The learning process will "
+                f"focus on simple dialogues, with English translations and corrections, ensuring a gradual and beginner-friendly learning experience "
+                f"you through each step of the conversation, ensuring clarity and improvement. Responses will be limited to 50 words."
+            )
+        else:  # mode == "talk"
+            return (
+                f"As a certified {language} instructor, I will communicate with {username} exclusively in {language}. "
+                f"Our conversations will be tailored to a beginner's level, maintaining natural conversational patterns "
+                f"Responses will be limited to 50 words."
+            )
 
     def initialize_conversation(
-        self, language: str, theme: str, username: str
+        self, language: str, mode: str, username: str
     ) -> Dict[str, Any]:
-        welcome_prompt = (
-            f"Compose a warm and inviting message to welcome {username} to a relaxed chat "
-            f"about {theme}. As a language learning coach, use only {language} to provide "
-            f"guidance and encouragement. Limit your response "
-            f"to 50 words or less."
-        )
+        mode = mode.strip()
+        if mode == "learn":
+            welcome_prompt = (
+                f"Welcome {username}! Focus on vocabulary training and simple sentence explanations in {language} for A1 level. "
+                f"Speak only in {language}. Engage in conversation, answer questions, and correct mistakes. "
+                f"Provide an English translation after each sentence in {language} for clarity. "
+                f"Translate non-English discussions to English. "
+                f"Give short explanations or example sentences for basic words or phrases. "
+                f"Limit responses to 50 words for clarity."
+            )
+
+        else:  # mode == "talk"
+            welcome_prompt = (
+                f"Compose a warm and inviting message to welcome {username} to a relaxed chat. "
+                f"As a language learning coach, use only {language} to provide guidance and encouragement. "
+                f"Limit your response to 50 words or less."
+            )
+
         welcome_message = self.get_groq_response(
             [{"role": "user", "content": welcome_prompt}]
         )
 
-        conversation_id = log_conversation_to_db(username, language, theme)
+        conversation_id = log_conversation_to_db(username, language, mode)
         print(f"Initialized conversation with ID: {conversation_id}")
 
         return {
@@ -67,7 +88,7 @@ class ConversationManager:
             "interaction_count": 0,
             "logging_enabled": True,
             "language": language,
-            "theme": theme,
+            "mode": mode,
             "username": username,
             "conversation_id": conversation_id,
         }
@@ -78,7 +99,7 @@ class ConversationManager:
         try:
             conversation = conversations[username]
             system_prompt = self.create_system_prompt(
-                conversation["language"].lower(), username, conversation["theme"]
+                conversation["language"].lower(), username, conversation["mode"]
             )
 
             conversation["history"].append({"role": "user", "content": user_message})
@@ -133,7 +154,7 @@ class ConversationManager:
             "interaction_count": conversation["interaction_count"],
             "total_duration": formatted_duration,
             "evaluation": evaluation_text,
-            "theme": conversation["theme"],
+            "mode": conversation["mode"],
             "language": conversation["language"],
         }
 
