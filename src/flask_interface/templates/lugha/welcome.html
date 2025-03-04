@@ -5,6 +5,7 @@
 {% block extra_head %}
     <meta name="description" content="Lugha - Evaluate and improve your language competence through interactive conversations">
     <meta name="keywords" content="language learning, language evaluation, language competence, language assessment, online learning">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
 
 {% block content %}
@@ -46,10 +47,13 @@
                             <i data-feather="bookmark"></i> Preferred Mode:
                         </label>
                         <select class="form-control dropdown-select" id="mode">
-
                             <option value="talk">Talk</option>
                             <option value="learn">Learn</option>
                         </select>
+                        <div style="color: #e0e0e9; margin-top: 4px; font-size: 11px;">
+                            <i class="fas fa-info-circle" style="color: #e0e0e0; margin-right: 2px; "></i>
+                            Advanced: Talk | Beginner: Learn
+                        </div>
                     </div>
                 </div>
                 <button id="start-conversation" class="btn">

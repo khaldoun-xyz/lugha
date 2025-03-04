@@ -60,14 +60,12 @@ class ConversationManager:
         mode = mode.strip()
         if mode == "learn":
             welcome_prompt = (
-                f"Welcome {username}! Focus on vocabulary training and simple sentence explanations in {language} for A1 level. "
-                f"Speak only in {language}. Engage in conversation, answer questions, and correct mistakes. "
-                f"Provide an English translation after each sentence in {language} for clarity. "
-                f"Translate non-English discussions to English. "
-                f"Give short explanations or example sentences for basic words or phrases. "
-                f"Limit responses to 50 words for clarity."
+                f"Compose a warm and welcoming message to greet {username} in 'learn' mode. "
+                f"Encourage {username} to improve their vocabulary and practice simple sentences in {language}. "
+                f"Instruct them to start by typing a word or sentence in {language} that they'd like to learn. "
+                f"Use only {language} for explanations and provide guidance step by step. "
+                f"Keep your response friendly, clear, and concise. Limit your response to 50 words."
             )
-
         else:  # mode == "talk"
             welcome_prompt = (
                 f"Compose a warm and inviting message to welcome {username} to a relaxed chat. "
