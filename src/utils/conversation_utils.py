@@ -60,11 +60,13 @@ class ConversationManager:
         mode = mode.strip()
         if mode == "learn":
             welcome_prompt = (
-                f"Compose a warm and welcoming message to greet {username} in 'learn' mode. "
-                f"Encourage {username} to improve their vocabulary and practice simple sentences in {language}. "
-                f"Instruct them to start by typing a word or sentence in {language} that they'd like to learn. "
-                f"Use only {language} for explanations and provide guidance step by step. "
-                f"Keep your response friendly, clear, and concise. Limit your response to 50 words."
+                f"Create a direct and friendly message to greet {username} in 'learn' mode. "
+                f"As a language learning coach,In 'learn' mode, {username} will have the opportunity to expand their vocabulary,  and receive corrections for any mistakes. "
+                f"Encourage {username} to practice by typing words or sentences in {language} that they wish to learn. "
+                f"All explanations and guidance will be provided in {language}, ensuring a full immersion experience. "
+                f"If {language} is different from English, please translate your message into English for better understanding. "
+                f"Keep your response friendly, clear, and concise at A1 level. Limit your response to 50 words."
+                f"Don't add phrases like Here is a friendly message to greetin 'learn' mode give the greetings directly"
             )
         else:  # mode == "talk"
             welcome_prompt = (
