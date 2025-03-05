@@ -21,7 +21,10 @@ As AI, we currently use groq.com’s free LLM API.
 Lugha has several frontend components:
 
 - A welcome screen to set your language
-  and conversation topic.
+& choose your learning mode
+(Talk for immersive conversation,
+ Learn for guided converstaion
+ with translations and corrections).
 - A chat screen for chatting.
 - An evaluation screen for reading
   the AI’s language competence evaluation.
@@ -33,8 +36,8 @@ Lugha has several frontend components:
 
 ### Welcome
 
-Very simple screen with few options.
-Initially, set a name, a language and a theme.
+A very simple screen with a few options.
+Initially, set a name, choose a language, and select a mode.
 Start the conversation.
 
 <img src="./files/lugha-sketch-initial.png"
@@ -111,7 +114,7 @@ The data is stored in a star schema model.
 - username
 - created_at
 - language
-- theme
+- mode
 - start_time
 
 ### conversations_messages
