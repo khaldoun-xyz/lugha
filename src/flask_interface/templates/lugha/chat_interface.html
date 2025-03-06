@@ -26,11 +26,10 @@
             <section class="ally-section">
                 <h3>Your Ally</h3>
                 <div class="form-group">
-                    <label for="theme">Learning Theme:</label>
-                    <select class="form-control dropdown-select" id="theme" disabled>
-                        {% for theme in learning_themes %}
-                        <option value="{{ theme }}">{{ theme }}</option>
-                        {% endfor %}
+                    <label for="mode">Mode:</label>
+                    <select class="form-control" id="mode" disabled>
+                        <option value="talk">Talk</option>
+                        <option value="learn">Learn</option>
                     </select>
                 </div>
                 <div class="language-emoji-container">
@@ -104,12 +103,12 @@
             const urlParams = new URLSearchParams(window.location.search);
             const username = urlParams.get('username');
             let language = urlParams.get('language');
-            let theme = urlParams.get('theme');
+            let mode = urlParams.get('mode');
 
             function initializeUI() {
                 $('#language').val(language).prop('disabled', true);
-                $('#theme').val(theme).prop('disabled', true);
                 $('#user-name').text(username);
+                $('#mode').val(mode).prop('disabled',true);
                 feather.replace();
                 $('#chat-interface').show();
                 $('#user-message').prop('disabled', false);
@@ -156,7 +155,7 @@
                     url: '/chat',
                     method: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ username, message, language }),
+                    data: JSON.stringify({ username, message, language, mode }),
                     success: function(data) {
                         if (data.response) {
                             appendMessage(Lugha, data.response);
@@ -211,7 +210,7 @@
 
             function enableCustomization() {
                 $('#language').prop('disabled', false);
-                $('#theme').prop('disabled', false);
+                $('#mode').prop('disabled', false);
                 $('.customization-message').hide();
                 $('#restart-conversation').show();
                 $('#user-message').prop('disabled', true);
@@ -223,13 +222,13 @@
 
             function handleRestartConversation() {
                 const currentLanguage = $('#language').val();
-                const currentTheme = $('#theme').val();
+                const currentMode = $('#mode').val();
 
                 $('#chat-box').empty();
                 $('#evaluation-message, #evaluation-result').hide();
                 $('#user-message').val('').prop('disabled', false);
                 $('#end-conversation').prop('disabled', false);
-                $('#language, #theme').prop('disabled', true);
+                $('#language, #mode').prop('disabled', true);
                 $('#restart-conversation').hide();
                 $('#chat-interface').show();
                 $('.customization-message').show();
@@ -241,7 +240,7 @@
                     data: JSON.stringify({
                         username,
                         language: currentLanguage,
-                        theme: currentTheme
+                        mode: currentMode
                     }),
                     success: function(data) {
                         if (data.response) {
@@ -310,7 +309,7 @@
                     url: '/start-evaluation',
                     method: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ username, language, theme }),
+                    data: JSON.stringify({ username, language, mode }),
                     success: function(data) {
                         if (data.response) {
                             appendMessage(Lugha, data.response);

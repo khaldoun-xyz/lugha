@@ -35,7 +35,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const username = urlParams.get('username');
 
-            const fetchProgress = (sortOrder, languageFilter, themeFilter) => {
+            const fetchProgress = (sortOrder) => {
                 $('#loading-indicator').show();
                 $('#progress-container').hide();
                 $.ajax({
@@ -45,8 +45,6 @@
                     data: JSON.stringify({
                         username: username,
                         sort_order: sortOrder,
-                        language: languageFilter,
-                        theme: themeFilter
                     }),
                     success: function(data) {
                         $('#loading-indicator').hide();
@@ -74,7 +72,7 @@
                                         <div class="progress-item-body">
                                             <p><strong><i data-feather="clock"></i> Duration:</strong> ${item.duration}</p>
                                             <p><strong><i data-feather="message-circle"></i> Interactions:</strong> ${item.interaction_count}</p>
-                                            <p><strong><i data-feather="tag"></i> Theme:</strong> ${item.theme}</p>
+                                            <p><strong><i data-feather="tag"></i> mode:</strong> ${item.mode}</p>
                                             <div class="evaluation-section">
                                                 <strong><i data-feather="check-circle"></i> Evaluation:</strong>
                                                 <div class="evaluation-content">${structuredEvaluation}</div>
@@ -86,20 +84,12 @@
                                 feather.replace();
                             });
                         } else {
-                            let filterMessage = "";
-                            if (languageFilter !== "all") {
-                                filterMessage += ` Language: ${languageFilter.charAt(0).toUpperCase() + languageFilter.slice(1)}`;
-                            }
-                            if (themeFilter !== "all") {
-                                filterMessage += filterMessage ? ` | Theme: ${themeFilter}` : ` Theme: ${themeFilter}`;
-                            }
-
                             $('#progress-container').append(`
                                 <div class="no-data">
                                     <i data-feather="inbox"></i>
-                                    <p>No progress data available${filterMessage ? ` for${filterMessage}` : ""}.</p>
+                                    <p>No progress data available.</p>
                                 </div>
-                            `);
+                `);
                             feather.replace();
                         }
                     },
@@ -116,22 +106,20 @@
                 });
             };
 
-            fetchProgress('desc', 'all', 'all');
+            fetchProgress('desc');
 
-            $('#sort-order, #language, #sort-theme').change(function() {
+            $('#sort-order').change(function() {
                 const sortOrder = $('#sort-order').val();
-                const languageFilter = $('#language').val();
-                const themeFilter = $('#sort-theme').val();
-                fetchProgress(sortOrder, languageFilter, themeFilter);
+                fetchProgress(sortOrder);
             });
 
             $('#back-to-chat').click(function() {
             const username = localStorage.getItem("username");
             const language = localStorage.getItem("language");
-            const theme = localStorage.getItem("theme");
+            const mode = localStorage.getItem("mode");
 
-            if (username && language && theme) {
-                 window.location.href = `/chat-interface?username=${encodeURIComponent(username)}&language=${encodeURIComponent(language)}&theme=${encodeURIComponent(theme)}`;
+            if (username && language && mode) {
+                 window.location.href = `/chat-interface?username=${encodeURIComponent(username)}&language=${encodeURIComponent(language)}&mode=${encodeURIComponent(mode)}`;
             } else {
                 alert("User data missing. Please restart the app.");
             }

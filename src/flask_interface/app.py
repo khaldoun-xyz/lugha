@@ -6,7 +6,6 @@ from evaluation_utils.evaluate import evaluate_last_conversation
 from utils.config import Config, initialize_groq_client
 from utils.conversation_utils import ConversationManager
 from utils.database_utils import fetch_all_users, fetch_progress_data
-from utils.learning_themes import LEARNING_THEMES
 
 client = initialize_groq_client()
 MODEL = Config.MODEL
@@ -20,9 +19,9 @@ CONVERSATION_MANAGER = ConversationManager()
 @app.route("/start-evaluation", methods=["POST"])
 def start_evaluation():
     data = request.json
-    username, language, theme = data["username"], data["language"], data["theme"]
+    username, language, mode = data["username"], data["language"], data["mode"]
     conversation_data = CONVERSATION_MANAGER.initialize_conversation(
-        language, theme, username
+        language, mode, username
     )
     CONVERSATIONS[username] = conversation_data
     return jsonify({"response": conversation_data["history"][0]["content"]})
@@ -31,9 +30,9 @@ def start_evaluation():
 @app.route("/restart-conversation", methods=["POST"])
 def restart_conversation():
     data = request.json
-    username, language, theme = data["username"], data["language"], data["theme"]
+    username, language, mode = data["username"], data["language"], data["mode"]
     conversation_data = CONVERSATION_MANAGER.initialize_conversation(
-        language, theme, username
+        language, mode, username
     )
     CONVERSATIONS[username] = conversation_data
     return jsonify({"response": conversation_data["history"][0]["content"]})
@@ -83,14 +82,10 @@ def fetch_progress():
         data = request.json
         username = data.get("username")
         sort_order = data.get("sort_order", "asc")
-        language_filter = data.get("language", "all")
-        theme_filter = data.get("theme", "all")
 
         progress = fetch_progress_data(
             username=username,
             sort_order=sort_order,
-            language_filter=language_filter,
-            theme_filter=theme_filter,
         )
 
         if progress is None:
@@ -118,28 +113,25 @@ def fetch_progress():
 
 @app.route("/track_progress")
 def track_progress():
-    return render_template(
-        "lugha/track_progress.html", learning_themes=LEARNING_THEMES.keys()
-    )
+    return render_template("lugha/track_progress.html")
 
 
 @app.route("/chat-interface")
 def chat_interface():
     username = request.args.get("username")
     language = request.args.get("language")
-    theme = request.args.get("theme")
+    mode = request.args.get("mode")
     return render_template(
         "lugha/chat_interface.html",
         username=username,
         language=language,
-        theme=theme,
-        learning_themes=LEARNING_THEMES.keys(),
+        mode=mode,
     )
 
 
 @app.route("/")
 def welcome():
-    return render_template("lugha/welcome.html", learning_themes=LEARNING_THEMES.keys())
+    return render_template("lugha/welcome.html")
 
 
 @app.route("/admin")

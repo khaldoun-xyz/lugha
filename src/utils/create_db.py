@@ -7,7 +7,7 @@ CREATE TABLE conversations_sessions (
     username TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     language VARCHAR(50),
-    theme VARCHAR(50),
+    mode VARCHAR(50),
     start_time TIMESTAMPTZ NOT NULL
 );
 

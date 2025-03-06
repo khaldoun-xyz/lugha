@@ -5,6 +5,7 @@
 {% block extra_head %}
     <meta name="description" content="Lugha - Evaluate and improve your language competence through interactive conversations">
     <meta name="keywords" content="language learning, language evaluation, language competence, language assessment, online learning">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
 
 {% block content %}
@@ -42,14 +43,17 @@
                         </select>
                     </div>
                     <div class="form-group-half">
-                        <label for="theme">
-                            <i data-feather="bookmark"></i> Preferred Theme:
+                        <label for="mode">
+                            <i data-feather="bookmark"></i> Preferred Mode:
                         </label>
-                        <select class="form-control dropdown-select" id="theme">
-                            {% for theme in learning_themes %}
-                            <option value="{{ theme }}">{{ theme }}</option>
-                            {% endfor %}
+                        <select class="form-control dropdown-select" id="mode">
+                            <option value="talk">Talk</option>
+                            <option value="learn">Learn</option>
                         </select>
+                        <div style="color: #e0e0e9; margin-top: 4px; font-size: 11px;">
+                            <i class="fas fa-info-circle" style="color: #e0e0e0; margin-right: 2px; "></i>
+                            Talk: Natural conversation | Learn: Guided Conversation with translations & corrections
+                        </div>
                     </div>
                 </div>
                 <button id="start-conversation" class="btn">
@@ -69,13 +73,13 @@
             $('#start-conversation').click(function () {
                 const username = $('#username').val();
                 const language = $('#language').val();
-                const theme = $('#theme').val();
+                const mode = $('#mode').val();
 
                 localStorage.setItem("username", username);
                 localStorage.setItem("language", language);
-                localStorage.setItem("theme", theme);
-                if (username && language && theme) {
-                    window.location.href = `/chat-interface?username=${encodeURIComponent(username)}&language=${encodeURIComponent(language)}&theme=${encodeURIComponent(theme)}`;
+                localStorage.setItem("mode", mode);
+                if (username && language && mode) {
+                    window.location.href = `/chat-interface?username=${encodeURIComponent(username)}&language=${encodeURIComponent(language)}&mode=${encodeURIComponent(mode)}`;
                 } else {
                     alert('Please fill in all required fields.');
                 }
