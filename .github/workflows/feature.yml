@@ -1,0 +1,29 @@
+name: Build & Deploy feature commit
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'feature-*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }} # 
+
+      - name: Deploy feature commit to Digital Ocean
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST_TEST }}
+          key: ${{ secrets.SSH_KEY_TEST }}
+          username: ${{ secrets.SSH_USERNAME_TEST }}
+          script: |
+            cd lugha/ && docker-compose down
+            cd .. && rm -rf lugha
+            git clone -b ${{ github.ref_name }} git@github.com:khaldoun-xyz/lugha.git
+            cp .env lugha/
+            cd lugha/ && docker-compose up --build -d
+            echo 'Deployment successful to digital ocean'
