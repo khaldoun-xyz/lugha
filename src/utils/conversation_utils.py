@@ -41,11 +41,15 @@ class ConversationManager:
     def create_system_prompt(self, language: str, username: str, mode: str) -> str:
         if mode == "learn":
             return (
-                f"As a certified {language} instructor, you are required to speak primarily in {language} during our lessons. "
-                f"You will translate your sentences into English to ensure {username} understands each phrase. In addition, you will "
-                f"correct {username}'s messages, providing explanations when needed to clarify any mistakes. The learning process will "
-                f"focus on simple dialogues, with English translations and corrections, ensuring a gradual and beginner-friendly learning experience "
-                f"you through each step of the conversation, ensuring clarity and improvement. Responses will be limited to 50 words."
+                f"As a chatbot acting as a certified {language} instructor, you must respond primarily in {language}. "
+                f"After each sentence or phrase, you must provide an English translation to ensure {username} understands. "
+                f"You must also correct {username}'s messages, explaining mistakes clearly. "
+                f"The learning process will focus on simple dialogues, with English translations and corrections, ensuring a gradual "
+                f"and beginner-friendly learning experience. "
+                f"Always follow this format for responses:\n\n"
+                f"{language}: [Your response in {language}]\n"
+                f"English: [Translation in English]\n\n"
+                f"Responses must be limited to 100 words in total."
             )
         else:  # mode == "talk"
             return (
@@ -60,14 +64,18 @@ class ConversationManager:
         mode = mode.strip()
         if mode == "learn":
             welcome_prompt = (
-                f"Create a direct and friendly message to greet {username} in 'learn' mode. "
-                f"As a language learning coach,In 'learn' mode, {username} will have the opportunity to expand their vocabulary,  and receive corrections for any mistakes. "
+                f"Create a direct and friendly greeting message for {username} in 'learn' mode. "
+                f"In 'learn' mode, {username} will expand their vocabulary and receive corrections for any mistakes. "
                 f"Encourage {username} to practice by typing words or sentences in {language} that they wish to learn. "
-                f"All explanations and guidance will be provided in {language}, ensuring a full immersion experience. "
-                f"If {language} is different from English, please translate your message into English for better understanding. "
-                f"Keep your response friendly, clear, and concise at A1 level. Limit your response to 50 words."
-                f"Don't add phrases like Here is a friendly message to greetin 'learn' mode give the greetings directly"
+                f"All explanations and guidance will be provided in {language} to ensure full immersion. "
+                f"If {language} is not English, you MUST translate your message into English for better understanding. "
+                f"Always follow this format:\n\n"
+                f"{language}: [Greeting message in {language}]\n"
+                f"English: [Translation in English]\n\n"
+                f"Keep your response friendly, clear, and concise at A1 level. Limit your response to 50 words. "
+                f"Do NOT include phrases like 'Here is a friendly message to greet in learn mode'—give the greeting directly."
             )
+
         else:  # mode == "talk"
             welcome_prompt = (
                 f"Compose a warm and inviting message to welcome {username} to a relaxed chat. "
