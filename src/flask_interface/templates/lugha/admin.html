@@ -3,7 +3,7 @@
 {% block title %}Admin - Conversation History{% endblock %}
 
 {% block content %}
-    <div class="logo-container">
+    <div id="logo-click" class="logo-container">
         <div class="logo-icon">L</div>
         <div class="logo-text">Lugha</div>
     </div>
@@ -95,7 +95,9 @@
                     $('#conversation-history').empty();
                 }
             });
-
+            $('#logo-click').click(function() {
+                window.location.href = "/";
+            });
         });
     </script>
 {% endblock %}
