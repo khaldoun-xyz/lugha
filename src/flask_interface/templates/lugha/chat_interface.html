@@ -11,7 +11,7 @@
     <div class="layout-wrapper">
         <aside class="sidebar">
             <header class="sidebar-header">
-                <div class="logo-container">
+                <div id="logo-click" class="logo-container">
                     <div class="logo-icon">L</div>
                     <div class="logo-text">Lugha</div>
                 </div>
@@ -341,6 +341,9 @@
                 if ($(window).width() > 768) {
                     $('.layout-wrapper').removeClass('sidebar-collapsed');
                 }
+            });
+            $('#logo-click').click(function() {
+                window.location.href = "/";
             });
 
             initialize();
