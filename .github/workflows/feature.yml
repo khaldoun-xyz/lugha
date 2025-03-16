@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - 'feature/**'
-      - 'feature-*'
+      - 'bugfix/'
 
 jobs:
   deploy:
@@ -21,9 +21,9 @@ jobs:
           key: ${{ secrets.SSH_KEY_TEST }}
           username: ${{ secrets.SSH_USERNAME_TEST }}
           script: |
-            cd lugha/ && docker-compose down
-            cd .. && rm -rf lugha
+            docker stop $(docker ps -q)
+            rm -rf lugha
             git clone -b ${{ github.ref_name }} git@github.com:khaldoun-xyz/lugha.git
-            cp .env lugha/
+            cp .env_lugha lugha/.env
             cd lugha/ && docker-compose up --build -d
             echo 'Deployment successful to digital ocean'
