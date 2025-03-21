@@ -205,7 +205,7 @@
     border: none;
     background: transparent;
     color: var(--dark-text);
-    font-size: 1rem;
+    font-size: 16px;
     padding: var(--spacing-sm);
 }
 
@@ -345,7 +345,7 @@
     }
 
     #chat-interface {
-        height:100vh;
+        height:100dvh;
         padding: var(--spacing-xs);
         margin: 0;
         max-width: 100%;
@@ -353,7 +353,7 @@
     }
 
     #chat-box {
-        height: calc(100vh - 220px);
+        height: calc(100dvh - 220px);
         max-width: 100%;
         box-sizing: border-box;
     }
@@ -409,14 +409,14 @@
     }
 
     #chat-interface {
-        height:100vh;
+        height: calc(100dvh - 80px);
         padding: var(--spacing-xs);
         margin: 0;
         max-width: 100%;
     }
 
     #chat-box {
-        max-height: calc(100vh - 180px);
+        max-height: calc(100dvh - 180px);
         max-width: 100%;
     }
 
