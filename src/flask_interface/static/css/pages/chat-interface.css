@@ -174,7 +174,27 @@
     align-self: flex-end;
     border-bottom-right-radius: 4px;
 }
+.recorded-message {
+    background: rgba(184, 24, 243, 0.3);
+    color: #ffffff;
+    align-self: flex-end;
+    border-bottom-left-radius: 4px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin-bottom: var(--spacing-xs);
+}
 
+.recorded-message .audio-info {
+    font-size: 0.8em;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    margin: 0;
+}
+
+.recorded-message .audio-info i {
+    margin-right: 8px;
+    font-size: 0.8em;
+}
 .bot-message {
     background: rgba(255, 255, 255, 0.05);
     color: #e0e0e0;
@@ -284,6 +304,31 @@
 
 .toast.show {
     opacity: 1;
+}
+
+/*Record Button*/
+.recording {
+    background-color: #ff4d4d !important;
+}
+.pulse-recording {
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    border-radius: 50%;
+    animation: pulse 1s infinite;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+}
+.transcription-feedback {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 5px;
 }
 
 /* Loading Indicator */

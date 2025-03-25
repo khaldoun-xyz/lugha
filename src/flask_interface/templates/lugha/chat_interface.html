@@ -78,7 +78,14 @@
                         <button id="send-message" class="btn-primary">
                             <i data-feather="send"></i>
                         </button>
+                        <button id="start-record-btn" class="btn-primary">
+                            <i data-feather="mic"></i>
+                        </button>
                     </div>
+                    <div id="recording-hint" style="display: none; color: #ff4d4d; font-size: 0.9em; margin-top: 5px;">
+                        Speak clearly and reduce background noise for better recognition.
+                    </div>
+                    <div id="transcription-feedback" class="transcription-feedback" style="display: none;"></div>
                     <button id="end-conversation" class="btn">
                         Finish Up, Check Your Language Level!
                     </button>
@@ -98,58 +105,219 @@
 {% endblock %}
 
 {% block extra_scripts %}
-    <script>
-        $(document).ready(function() {
-            const Lugha = 'Lugha';
-            const urlParams = new URLSearchParams(window.location.search);
-            const username = urlParams.get('username');
-            let language = urlParams.get('language');
-            let mode = urlParams.get('mode');
+<script>
+    $(document).ready(function() {
+        const Lugha = 'Lugha';
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username');
+        let language = urlParams.get('language');
+        let mode = urlParams.get('mode');
 
-            function initializeUI() {
-                $('#language').val(language).prop('disabled', true);
-                $('#user-name').text(username);
-                $('#mode').val(mode).prop('disabled',true);
-                feather.replace();
-                $('#chat-interface').show();
-                $('#user-message').prop('disabled', false);
+        let isRecording = false;
+        let recognition = null;
+        let recordingTimeout = null;
+        let microphoneStream = null;
 
-                if ($(window).width() <= 768) {
-                    $('.layout-wrapper').addClass('sidebar-collapsed');
-                }
+        const languageMappings = {
+            'arabic': 'ar-SA',
+            'english': 'en-US',
+            'french': 'fr-FR',
+            'german': 'de-DE',
+            'italian': 'it-IT',
+            'spanish': 'es-ES',
+            'swedish': 'sv-SE'
+        };
+
+        function initializeSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window)) {
+                showError('Your browser does not support speech recognition. Please use Chrome or another supported browser.');
+                return false;
             }
 
-            function smoothScrollTo(element) {
-                $('html, body').animate({
-                    scrollTop: $(element).offset().top
-                }, {
-                    duration: 800,
-                    easing: 'swing'
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function(stream) {
+                    microphoneStream = stream;
+                    setupRecognition();
+                    return true;
+                })
+                .catch(function(err) {
+                    showError('Microphone access is required. Please allow microphone access and reload the page.');
+                    return false;
                 });
+        }
+
+        function setupRecognition() {
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = languageMappings[language.toLowerCase()] || 'en-US';
+
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                if (interimTranscript) {
+                    $('#transcription-feedback').html(`Transcribing: <i>${interimTranscript}</i>`).show();
+                }
+
+                if (finalTranscript) {
+                    $('#user-message').val(finalTranscript);
+                    $('#transcription-feedback').html(`Transcribed: <b>${finalTranscript}</b>`);
+                    clearTimeout(recordingTimeout);
+                    recordingTimeout = setTimeout(() => {
+                        stopRecording();
+                        sendMessage();
+                    }, 6000);
+                }
+            };
+
+            recognition.onerror = function(event) {
+                const errorMessages = {
+                    'no-speech': 'No speech detected. Please try again.',
+                    'audio-capture': 'Microphone not found. Please check your device.',
+                    'not-allowed': 'Microphone access denied. Please enable it in your browser settings.',
+                    'network': 'Network error. Please check your internet connection.'
+                };
+                showError(errorMessages[event.error] || 'Speech recognition failed. Please try again.');
+                stopRecording();
+            };
+
+            recognition.onend = function() {
+                if (isRecording) {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        isRecording = false;
+                        updateRecordingUI(false);
+                    }
+                }
+            };
+        }
+
+        function showError(message) {
+            $('#recording-hint').text(message).show();
+            setTimeout(() => $('#recording-hint').hide(), 3000);
+            $('#start-record-btn').prop('disabled', true);
+        }
+
+        function startRecording() {
+            if (!recognition && !initializeSpeechRecognition()) return;
+
+            try {
+                isRecording = true;
+                recognition.lang = languageMappings[language.toLowerCase()] || 'en-US';
+                recognition.start();
+                updateRecordingUI(true);
+
+                clearTimeout(recordingTimeout);
+                recordingTimeout = setTimeout(stopRecording, 30000);
+
+                $('#transcription-feedback').empty().show();
+                $('#user-message').val('');
+                startRecordingAnimation();
+            } catch (error) {
+                isRecording = false;
+                updateRecordingUI(false);
+                showError('Failed to start recording. Please try again.');
+            }
+        }
+
+        function stopRecording() {
+            if (!isRecording) return;
+
+            isRecording = false;
+            clearTimeout(recordingTimeout);
+
+            try {
+                recognition.stop();
+            } catch (error) {
+                console.error('Error stopping recognition:', error);
             }
 
-            function scrollChatToBottom() {
+            updateRecordingUI(false);
+            stopRecordingAnimation();
 
+            setTimeout(() => $('#transcription-feedback').fadeOut(500), 2000);
+            if ($('#user-message').val().trim()) {
+                sendMessage(true);
+            }
+        }
+
+        function updateRecordingUI(isActive) {
+            $('#start-record-btn')
+                .html(`<i data-feather="${isActive ? 'mic-off' : 'mic'}"></i>`)
+                .toggleClass('recording', isActive);
+            $('#recording-hint').text(isActive ? 'Listening... Click mic to stop.' : '').toggle(isActive);
+            feather.replace();
+        }
+
+        function startRecordingAnimation() {
+            if (!$('#recording-indicator').length) {
+                $('<div id="recording-indicator" class="pulse-recording"></div>').appendTo('#start-record-btn');
+            }
+        }
+
+        function stopRecordingAnimation() {
+            $('#recording-indicator').remove();
+        }
+
+        $('#start-record-btn').click(function() {
+            if (isRecording) {
+                stopRecording();
+                if ($('#user-message').val().trim()) {
+                    sendMessage();
+                }
+            } else {
+                startRecording();
+            }
+        });
+
+        function initializeUI() {
+            $('#language').val(language).prop('disabled', true);
+            $('#user-name').text(username);
+            $('#mode').val(mode).prop('disabled',true);
+            feather.replace();
+            $('#chat-interface').show();
+            $('#user-message').prop('disabled', false);
+
+            if ($(window).width() <= 768) {
+                $('.layout-wrapper').addClass('sidebar-collapsed');
+            }
+        }
+
+        function appendMessage(sender, message, recorded=false) {
+            const messageClass = sender === Lugha ? 'bot-message' : 'user-message';
+            const audioInfo = recorded ? '<div class="audio-info"><i class="fas fa-microphone"></i> Audio</div>' : '';
+
+            $('#chat-box').prepend(`
+                <div class="message-bubble ${messageClass} ${recorded ? 'recorded-message' : ''}">
+                    ${audioInfo}
+                    <strong>${sender}:</strong> ${message}
+                </div>
+            `);
+            scrollChatToBottom();
+        }
+
+        function scrollChatToBottom() {
             const chatBox = document.getElementById('chat-box');
-            chatBox.scrollTop = 0;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
 
-            }
 
-            function appendMessage(sender, message) {
-                const messageClass = sender === Lugha ? 'bot-message' : 'user-message';
-                $('#chat-box').prepend(`
-                    <div class="message-bubble ${messageClass}">
-                        <strong>${sender}:</strong> ${message}
-                    </div>
-                `);
-                scrollChatToBottom();
-            }
-
-            function sendMessage() {
+            function sendMessage(recorded = false) {
                 const message = $('#user-message').val().trim();
                 if (!message) return;
 
-                appendMessage(username, message);
+                appendMessage(username, message,recorded);
                 $('#user-message').val('');
 
                 $.ajax({
@@ -166,6 +334,14 @@
                         console.error('Chat error:', err);
                         alert('Error sending message. Please try again.');
                     }
+                });
+            }
+            function smoothScrollTo(element) {
+                $('html, body').animate({
+                    scrollTop: $(element).offset().top
+                }, {
+                    duration: 800,
+                    easing: 'swing'
                 });
             }
 
@@ -278,7 +454,7 @@
                     $(this).find('i')
                         .toggleClass('feather-chevron-left feather-chevron-right');
                     $('#uncollapse-sidebar')
-                        .toggle($('.layout-wrapper').hasClass('sidebar-collapsed'));
+                    .toggle($('.layout-wrapper').hasClass('sidebar-collapsed'));
                 });
 
                 $('.toggle-sidebar-button, .sidebar-overlay').click(function(e) {
