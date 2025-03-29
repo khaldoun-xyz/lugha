@@ -74,7 +74,7 @@
                 <div id="chat-box"></div>
                 <div class="chat-controls">
                     <div class="input-group">
-                        <input type="text" id="user-message" class="form-control" placeholder="Type your message..." required>
+                        <textarea id="user-message" class="form-control" placeholder="Type your message..."></textarea>
                         <button id="send-message" class="btn-primary">
                             <i data-feather="send"></i>
                         </button>
@@ -317,7 +317,7 @@
                 const message = $('#user-message').val().trim();
                 if (!message) return;
 
-                appendMessage(username, message,recorded);
+                appendMessage(username, message,false);
                 $('#user-message').val('');
 
                 $.ajax({
@@ -498,6 +498,17 @@
                     }
                 });
             }
+            document.getElementById("user-message").addEventListener("keydown", function (event) {
+                if (event.key === "Enter") {
+                    if (event.shiftKey) {
+                    event.preventDefault();
+                    this.value += "\n";
+                    } else {
+                        event.preventDefault();
+                        document.getElementById("send-message").click();
+                    }
+                }
+            });
 
             $('#user-message').keypress(function(event) {
                 if (event.key === 'Enter') {
