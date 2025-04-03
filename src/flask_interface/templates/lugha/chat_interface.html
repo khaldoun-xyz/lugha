@@ -128,34 +128,73 @@
             'swedish': 'sv-SE'
         };
 
+        function isMobileBrowser() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        function isAndroid() {
+            return /Android/i.test(navigator.userAgent);
+        }
+
+        function requestMicrophoneAccess() {
+            return navigator.mediaDevices.getUserMedia({ audio: true })
+                .catch(error => {
+                    if (error.name === 'NotAllowedError') {
+                        throw new Error('Microphone permission denied. Please allow access in your browser settings.');
+                    } else if (error.name === 'NotFoundError') {
+                        throw new Error('No microphone detected on your device.');
+                    } else {
+                        throw error;
+                    }
+                });
+        }
+
         function initializeSpeechRecognition() {
-            if (!('webkitSpeechRecognition' in window)) {
+            if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
                 showError('Your browser does not support speech recognition. Please use Chrome or another supported browser.');
-                return false;
+                $('#start-record-btn').prop('disabled', true).hide();
+                return Promise.resolve(false);
             }
 
-            navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(function(stream) {
+            return requestMicrophoneAccess()
+                .then(stream => {
                     microphoneStream = stream;
                     setupRecognition();
                     return true;
                 })
-                .catch(function(err) {
+                .catch(error => {
+                    console.error('Microphone access error:', error);
                     showError('Microphone access is required. Please allow microphone access and reload the page.');
+                    $('#start-record-btn').prop('disabled', true);
                     return false;
                 });
         }
 
         function setupRecognition() {
-            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.continuous = true;
-            recognition.interimResults = true;
+            const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognitionAPI();
+
+            if (isAndroid()) {
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+            } else if (isMobileBrowser()) {
+                recognition.continuous = false;
+                recognition.interimResults = true;
+            } else {
+                recognition.continuous = true;
+                recognition.interimResults = true;
+            }
+
             recognition.lang = languageMappings[language.toLowerCase()] || 'en-US';
+
+            recognition.onresult = null;
+            recognition.onerror = null;
+            recognition.onend = null;
 
             recognition.onresult = function(event) {
                 let interimTranscript = '';
                 let finalTranscript = '';
-
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
@@ -173,45 +212,101 @@
                     $('#user-message').val(finalTranscript);
                     $('#transcription-feedback').html(`Transcribed: <b>${finalTranscript}</b>`);
                     clearTimeout(recordingTimeout);
-                    recordingTimeout = setTimeout(() => {
+
+                    if (isAndroid()) {
                         stopRecording();
-                        sendMessage();
-                    }, 6000);
+                        if ($('#user-message').val().trim()) {
+                            setTimeout(() => sendMessage(true), 300);
+                        }
+                    } else if (isMobileBrowser()) {
+                        stopRecording();
+                        if ($('#user-message').val().trim()) {
+                            setTimeout(() => sendMessage(true), 500);
+                        }
+                    } else {
+                        recordingTimeout = setTimeout(() => {
+                            stopRecording();
+                            if ($('#user-message').val().trim()) {
+                                sendMessage(true);
+                            }
+                        }, 2000);
+                    }
                 }
             };
 
             recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error, event);
                 const errorMessages = {
                     'no-speech': 'No speech detected. Please try again.',
                     'audio-capture': 'Microphone not found. Please check your device.',
                     'not-allowed': 'Microphone access denied. Please enable it in your browser settings.',
-                    'network': 'Network error. Please check your internet connection.'
+                    'network': 'Network error. Please check your internet connection.',
+                    'aborted': 'Speech recognition was aborted.',
+                    'service-not-allowed': 'Speech service not allowed on this device.',
+                    'bad-grammar': 'Speech recognition grammar error.'
                 };
-                showError(errorMessages[event.error] || 'Speech recognition failed. Please try again.');
+                showError(errorMessages[event.error] || `Speech recognition error: ${event.error}`);
                 stopRecording();
             };
 
             recognition.onend = function() {
-                if (isRecording) {
+                console.log("Recognition ended, isRecording:", isRecording);
+                if (isRecording && !isAndroid()) {
                     try {
-                        recognition.start();
+                        setTimeout(() => {
+                            if (isRecording) {
+                                recognition.start();
+                            }
+                        }, 300);
                     } catch (e) {
+                        console.error('Failed to restart recognition:', e);
                         isRecording = false;
                         updateRecordingUI(false);
                     }
+                } else {
+                    isRecording = false;
+                    updateRecordingUI(false);
                 }
             };
+            if (isMobileBrowser()) {
+                $('#recording-hint').text('Tap mic icon, speak clearly, then wait.').show();
+                setTimeout(() => $('#recording-hint').fadeOut(1500), 5000);
+            }
         }
 
         function showError(message) {
+            console.error(message);
             $('#recording-hint').text(message).show();
-            setTimeout(() => $('#recording-hint').hide(), 3000);
-            $('#start-record-btn').prop('disabled', true);
+            setTimeout(() => $('#recording-hint').fadeOut(3000), 3000);
+        }
+        function startRecording() {
+            if (recognition === null) {
+                initializeSpeechRecognition()
+                    .then(success => {
+                        if (success) {
+                            actuallyStartRecording();
+                        }
+                    });
+            } else {
+                actuallyStartRecording();
+            }
         }
 
-        function startRecording() {
-            if (!recognition && !initializeSpeechRecognition()) return;
+        function actuallyStartRecording() {
+            try {
+                if (isRecording) {
+                    recognition.stop();
+                    setTimeout(() => startRecordingSession(), 300);
+                } else {
+                    startRecordingSession();
+                }
+            } catch (e) {
+                console.error("Error stopping previous recognition:", e);
+                startRecordingSession();
+            }
+        }
 
+        function startRecordingSession() {
             try {
                 isRecording = true;
                 recognition.lang = languageMappings[language.toLowerCase()] || 'en-US';
@@ -219,15 +314,38 @@
                 updateRecordingUI(true);
 
                 clearTimeout(recordingTimeout);
-                recordingTimeout = setTimeout(stopRecording, 30000);
+                recordingTimeout = setTimeout(stopRecording, isAndroid() ? 10000 : (isMobileBrowser() ? 15000 : 30000));
 
                 $('#transcription-feedback').empty().show();
                 $('#user-message').val('');
                 startRecordingAnimation();
+                if (isAndroid()) {
+                    unlockAudioContext();
+                }
             } catch (error) {
+                console.error('Failed to start recording:', error);
                 isRecording = false;
                 updateRecordingUI(false);
+                recognition = null;
                 showError('Failed to start recording. Please try again.');
+            }
+        }
+        function unlockAudioContext() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContext();
+
+                const buffer = audioContext.createBuffer(1, 1, 22050);
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioContext.destination);
+                source.start(0);
+
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            } catch (e) {
+                console.error('Audio context unlock failed:', e);
             }
         }
 
@@ -246,17 +364,28 @@
             updateRecordingUI(false);
             stopRecordingAnimation();
 
-            setTimeout(() => $('#transcription-feedback').fadeOut(500), 2000);
-            if ($('#user-message').val().trim()) {
-                sendMessage(true);
-            }
+            setTimeout(() => {
+                if (!isRecording) {
+                    $('#transcription-feedback').fadeOut(500);
+                }
+            }, 2000);
         }
 
         function updateRecordingUI(isActive) {
             $('#start-record-btn')
                 .html(`<i data-feather="${isActive ? 'mic-off' : 'mic'}"></i>`)
                 .toggleClass('recording', isActive);
-            $('#recording-hint').text(isActive ? 'Listening... Click mic to stop.' : '').toggle(isActive);
+            if (isActive) {
+                if (isAndroid()) {
+                    $('#recording-hint').text('Listening... Please wait.').show();
+                } else if (isMobileBrowser()) {
+                    $('#recording-hint').text('Listening... Tap mic when done.').show();
+                } else {
+                    $('#recording-hint').text('Listening... Click mic to stop.').show();
+                }
+            } else {
+                $('#recording-hint').hide();
+            }
             feather.replace();
         }
 
@@ -274,7 +403,7 @@
             if (isRecording) {
                 stopRecording();
                 if ($('#user-message').val().trim()) {
-                    sendMessage();
+                    setTimeout(() => sendMessage(true), 300);
                 }
             } else {
                 startRecording();
@@ -313,217 +442,248 @@
         }
 
 
-            function sendMessage(recorded = false) {
-                const message = $('#user-message').val().trim();
-                if (!message) return;
+        function sendMessage(recorded = false) {
+            const message = $('#user-message').val().trim();
+            if (!message) return;
 
-                appendMessage(username, message,recorded);
-                $('#user-message').val('');
+            appendMessage(username, message, recorded);
+            $('#user-message').val('');
 
-                $.ajax({
-                    url: '/chat',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ username, message, language, mode }),
-                    success: function(data) {
-                        if (data.response) {
-                            appendMessage(Lugha, data.response);
-                        }
-                    },
-                    error: function(err) {
-                        console.error('Chat error:', err);
-                        alert('Error sending message. Please try again.');
+            $.ajax({
+                url: '/chat',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ username, message, language, mode }),
+                success: function(data) {
+                    if (data.response) {
+                        appendMessage(Lugha, data.response);
                     }
-                });
-            }
-            function smoothScrollTo(element) {
-                $('html, body').animate({
-                    scrollTop: $(element).offset().top
-                }, {
-                    duration: 800,
-                    easing: 'swing'
-                });
-            }
+                },
+                error: function(err) {
+                    console.error('Chat error:', err);
+                    alert('Error sending message. Please try again.');
+                }
+            });
+        }
 
-            function handleEndConversation() {
-                $('.chat-controls').addClass('relative-position');
-                $('#chat-interface').addClass('evaluation-mode');
-                $('#loading-indicator').show();
+        function smoothScrollTo(element) {
+            $('html, body').animate({
+                scrollTop: $(element).offset().top
+            }, {
+                duration: 800,
+                easing: 'swing'
+            });
+        }
 
-                smoothScrollTo('#loading-indicator');
+        function handleEndConversation() {
+            $('.chat-controls').addClass('relative-position');
+            $('#chat-interface').addClass('evaluation-mode');
+            $('#loading-indicator').show();
 
-                $.ajax({
-                    url: '/end-conversation',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ username }),
-                    success: function(data) {
-                        $('#loading-indicator').hide();
+            smoothScrollTo('#loading-indicator');
 
-                        $('#evaluation-message')
-                            .text(`You interacted ${data.interaction_count} times over a duration of ${data.total_duration} seconds.`)
+            $.ajax({
+                url: '/end-conversation',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ username }),
+                success: function(data) {
+                    $('#loading-indicator').hide();
+
+                    $('#evaluation-message')
+                        .text(`You interacted ${data.interaction_count} times over a duration of ${data.total_duration} seconds.`)
+                        .show();
+                    if (data.evaluation) {
+                        $('#evaluation-result')
+                            .html('<strong>Evaluation Result:</strong><br>' +
+                                data.evaluation
+                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                    .replace(/\n/g, '<br>'))
                             .show();
-                        if (data.evaluation) {
-                            $('#evaluation-result')
-                                .html('<strong>Evaluation Result:</strong><br>' +
-                                    data.evaluation
-                                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                                        .replace(/\n/g, '<br>'))
-                                .show();
 
-                            smoothScrollTo('#evaluation-result');
-                        }
-
-                        enableCustomization();
-                    },
-                    error: function(err) {
-                        $('#loading-indicator').hide();
-                        console.error('End conversation error:', err);
-                        alert('Error ending conversation. Please try again.');
+                        smoothScrollTo('#evaluation-result');
                     }
-                });
-            }
 
-            function enableCustomization() {
-                $('#language').prop('disabled', false);
-                $('#mode').prop('disabled', false);
-                $('.customization-message').hide();
-                $('#restart-conversation').show();
-                $('#user-message').prop('disabled', true);
-                $('#end-conversation').prop('disabled', true);
+                    enableCustomization();
+                },
+                error: function(err) {
+                    $('#loading-indicator').hide();
+                    console.error('End conversation error:', err);
+                    alert('Error ending conversation. Please try again.');
+                }
+            });
+        }
 
-                $('#toast').text('Ally customization is now enabled').addClass('show');
-                setTimeout(() => $('#toast').removeClass('show'), 3000);
-            }
+        function enableCustomization() {
+            $('#language').prop('disabled', false);
+            $('#mode').prop('disabled', false);
+            $('.customization-message').hide();
+            $('#restart-conversation').show();
+            $('#user-message').prop('disabled', true);
+            $('#end-conversation').prop('disabled', true);
 
-            function handleRestartConversation() {
-                const currentLanguage = $('#language').val();
-                const currentMode = $('#mode').val();
+            $('#toast').text('Ally customization is now enabled').addClass('show');
+            setTimeout(() => $('#toast').removeClass('show'), 3000);
+        }
 
-                $('#chat-box').empty();
-                $('#evaluation-message, #evaluation-result').hide();
-                $('#user-message').val('').prop('disabled', false);
-                $('#end-conversation').prop('disabled', false);
-                $('#language, #mode').prop('disabled', true);
-                $('#restart-conversation').hide();
-                $('#chat-interface').show();
-                $('.customization-message').show();
+        function handleRestartConversation() {
+            const currentLanguage = $('#language').val();
+            const currentMode = $('#mode').val();
 
-                $.ajax({
-                    url: '/restart-conversation',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        username,
-                        language: currentLanguage,
-                        mode: currentMode
-                    }),
-                    success: function(data) {
-                        if (data.response) {
-                            appendMessage(Lugha, data.response);
-                        }
-                    },
-                    error: function(err) {
-                        console.error('Restart conversation error:', err);
-                        alert('Error restarting conversation. Please try again.');
+            $('#chat-box').empty();
+            $('#evaluation-message, #evaluation-result').hide();
+            $('#user-message').val('').prop('disabled', false);
+            $('#end-conversation').prop('disabled', false);
+            $('#language, #mode').prop('disabled', true);
+            $('#restart-conversation').hide();
+            $('#chat-interface').show();
+            $('.customization-message').show();
+
+            $.ajax({
+                url: '/restart-conversation',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    username,
+                    language: currentLanguage,
+                    mode: currentMode
+                }),
+                success: function(data) {
+                    if (data.response) {
+                        appendMessage(Lugha, data.response);
                     }
-                });
+                },
+                error: function(err) {
+                    console.error('Restart conversation error:', err);
+                    alert('Error restarting conversation. Please try again.');
+                }
+            });
+        }
+
+        function setupSidebarBehavior() {
+            if ($('.sidebar-overlay').length === 0) {
+                $('body').append('<div class="sidebar-overlay"></div>');
             }
 
-            function setupSidebarBehavior() {
-                if ($('.sidebar-overlay').length === 0) {
-                    $('body').append('<div class="sidebar-overlay"></div>');
-                }
-
-                function toggleSidebar() {
-                    $('.sidebar').toggleClass('active');
-                    $('.sidebar-overlay').toggleClass('active');
-                    $('body').toggleClass('sidebar-open');
-                }
-
-                $('#uncollapse-sidebar').click(function() {
-                    $('.layout-wrapper').removeClass('sidebar-collapsed');
-                    $('#toggle-sidebar i')
-                        .removeClass('feather-chevron-right')
-                        .addClass('feather-chevron-left');
-                });
-
-                $('#toggle-sidebar').click(function() {
-                    $('.layout-wrapper').toggleClass('sidebar-collapsed');
-                    $(this).find('i')
-                        .toggleClass('feather-chevron-left feather-chevron-right');
-                    $('#uncollapse-sidebar')
-                    .toggle($('.layout-wrapper').hasClass('sidebar-collapsed'));
-                });
-
-                $('.toggle-sidebar-button, .sidebar-overlay').click(function(e) {
-                    e.stopPropagation();
-                    toggleSidebar();
-                });
+            function toggleSidebar() {
+                $('.sidebar').toggleClass('active');
+                $('.sidebar-overlay').toggleClass('active');
+                $('body').toggleClass('sidebar-open');
             }
 
-            function setupTouchBehavior() {
-                const chatBox = document.getElementById('chat-box');
-                if (chatBox) {
-                    chatBox.addEventListener('touchstart', function(e) {
-                        if (e.targetTouches.length === 1) {
-                            e.stopPropagation();
-                        }
-                    }, false);
-                }
+            $('#uncollapse-sidebar').click(function() {
+                $('.layout-wrapper').removeClass('sidebar-collapsed');
+                $('#toggle-sidebar i')
+                    .removeClass('feather-chevron-right')
+                    .addClass('feather-chevron-left');
+            });
 
-                $('#chat-box').on('touchmove', function(e) {
-                    e.stopPropagation();
-                });
-            }
+            $('#toggle-sidebar').click(function() {
+                $('.layout-wrapper').toggleClass('sidebar-collapsed');
+                $(this).find('i')
+                    .toggleClass('feather-chevron-left feather-chevron-right');
+                $('#uncollapse-sidebar')
+                .toggle($('.layout-wrapper').hasClass('sidebar-collapsed'));
+            });
 
-            function initialize() {
-                initializeUI();
-                setupSidebarBehavior();
-                setupTouchBehavior();
-                $.ajax({
-                    url: '/start-evaluation',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ username, language, mode }),
-                    success: function(data) {
-                        if (data.response) {
-                            appendMessage(Lugha, data.response);
-                        }
-                    },
-                    error: function(err) {
-                        console.error('Start evaluation error:', err);
-                        alert('Error starting evaluation. Please try again.');
+            $('.toggle-sidebar-button, .sidebar-overlay').click(function(e) {
+                e.stopPropagation();
+                toggleSidebar();
+            });
+        }
+
+        function setupTouchBehavior() {
+            const chatBox = document.getElementById('chat-box');
+            if (chatBox) {
+                chatBox.addEventListener('touchstart', function(e) {
+                    if (e.targetTouches.length === 1) {
+                        e.stopPropagation();
                     }
-                });
+                }, { passive: true });
             }
 
-            $('#user-message').keypress(function(event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    sendMessage();
+            $('#chat-box').on('touchmove', function(e) {
+                e.stopPropagation();
+            });
+
+            if (isAndroid()) {
+                $('#start-record-btn, #send-message').on('touchend', function(e) {
+                    e.preventDefault();
+                    $(this).trigger('click');
+                });
+
+                $('#user-message').on('touchstart', function() {
+                    setTimeout(() => {
+                        $(this).focus();
+                    }, 200);
+                });
+            }
+        }
+
+        function initialize() {
+            initializeUI();
+            setupSidebarBehavior();
+            setupTouchBehavior();
+
+            if (isMobileBrowser()) {
+                $('#chat-box').css('max-height', (window.innerHeight * 0.6) + 'px');
+            }
+
+            $.ajax({
+                url: '/start-evaluation',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ username, language, mode }),
+                success: function(data) {
+                    if (data.response) {
+                        appendMessage(Lugha, data.response);
+                    }
+                },
+                error: function(err) {
+                    console.error('Start evaluation error:', err);
+                    alert('Error starting evaluation. Please try again.');
                 }
             });
+        }
 
-            $('#send-message').click(sendMessage);
-            $('#end-conversation').click(handleEndConversation);
-            $('#restart-conversation').click(handleRestartConversation);
-
-            $('#track-progress').click(function() {
-                window.location.href = `/track_progress?username=${encodeURIComponent(username)}`;
-            });
-
-            $(window).resize(function() {
-                if ($(window).width() > 768) {
-                    $('.layout-wrapper').removeClass('sidebar-collapsed');
-                }
-            });
-            $('#logo-click').click(function() {
-                window.location.href = "/";
-            });
-
-            initialize();
+        $('#user-message').keypress(function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
         });
-    </script>
+
+        $('#send-message').click(function() {
+            sendMessage();
+        });
+
+        $('#end-conversation').click(handleEndConversation);
+        $('#restart-conversation').click(handleRestartConversation);
+
+        $('#track-progress').click(function() {
+            window.location.href = `/track_progress?username=${encodeURIComponent(username)}`;
+        });
+
+        $(window).resize(function() {
+            if ($(window).width() > 768) {
+                $('.layout-wrapper').removeClass('sidebar-collapsed');
+            }
+            if (isMobileBrowser()) {
+                $('#chat-box').css('max-height', (window.innerHeight * 0.6) + 'px');
+            }
+        });
+
+        $('#logo-click').click(function() {
+            window.location.href = "/";
+        });
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden' && isRecording) {
+                stopRecording();
+            }
+        });
+        initialize();
+    });
+</script>
 {% endblock %}
