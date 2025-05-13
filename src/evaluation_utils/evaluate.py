@@ -148,23 +148,16 @@ class LanguageEvaluator:
 
     def create_evaluation_prompt(self, conversation: str, language: str) -> str:
         return (
-            f"As a professional {language} language evaluator, analyze the conversation and provide a short, structured evaluation. Keep the feedback direct and user-focused. \n\n"
-            f"### Step 1: Classify User Proficiency\n"
-            f"Label the user's proficiency based on their grammar, vocabulary, and communication effectiveness:\n"
-            f"- **Grammar Level:** Beginner / Intermediate / Advanced\n"
-            f"- **Vocabulary Level:** Limited / Moderate / Rich\n"
-            f"- **Fluency Level:** Poor / Understandable / Fluent\n\n"
-            f"### Step 2: Score Assignment (Based on Classification)\n"
-            f"Assign a fair score (0-10) for each category:\n"
-            f"- Overall Score: __/10\n"
-            f"- Grammar: __/10\n"
-            f"- Vocabulary: __/10\n"
-            f"- Communication: __/10\n\n"
-            f"### Step 3: Key Mistakes (Max 3 Common Errors)\n"
-            f"Provide corrections in this format: [original] → [better version]\n\n"
-            f"### Step 4: Quick Feedback & Next Steps\n"
-            f"- One positive aspect of the user's conversation.\n"
-            f"- Two short and focused improvement tips.\n\n"
+            f"As an expert {language} language evaluator, analyze this conversation and provide:\n\n"
+            f"1. **Brief Proficiency Overview:**\n"
+            f"- Overall Score: __%\n"
+            f"- Grammar Accuracy: __%\n"
+            f"- Vocabulary Usage: __%\n"
+            f"- Communication Effectiveness: __%\n\n"
+            f"2. **Top 3-5 Most Impactful Mistakes:**\n"
+            f"- Provide each mistake in the format: [original] → [correction]\n"
+            f"3. **Quick Improvement Tips:**\n"
+            f"- Include two actionable suggestions for focused practice.\n\n"
             f"Conversation to evaluate:\n{conversation}"
         )
 
