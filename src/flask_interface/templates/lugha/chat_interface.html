@@ -335,20 +335,15 @@
             document.getElementById("user-message").addEventListener("keydown", function (event) {
                 if (event.key === "Enter") {
                     if (event.shiftKey) {
-                    event.preventDefault();
-                    this.value += "\n";
+                        event.preventDefault();
+                        this.value += "\n";
                     } else {
                         event.preventDefault();
                         document.getElementById("send-message").click();
                     }
                 }
             });
-            $('#user-message').keypress(function(event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    sendMessage();
-                }
-            });
+
             $('#send-message').click(sendMessage);
             $('#end-conversation').click(handleEndConversation);
             $('#restart-conversation').click(handleRestartConversation);
