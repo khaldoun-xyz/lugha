@@ -174,6 +174,42 @@
     align-self: flex-end;
     border-bottom-right-radius: 4px;
 }
+#user-message {
+    resize: none;
+    overflow-y: auto;
+    min-height: 50px;
+    max-height: 100px;
+    line-height: 1.5;
+    padding: var(--spacing-sm);
+    scrollbar-width: thin;
+    scrollbar-color: var(--dark-primary) transparent;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--dark-text);
+    font-family: inherit;
+    font-size: inherit;
+    flex-grow: 1;
+}
+
+#user-message::-webkit-scrollbar {
+    width: 6px;
+}
+
+#user-message::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+}
+
+#user-message::-webkit-scrollbar-thumb {
+    background-color: var(--dark-primary);
+    border-radius: 10px;
+    border: transparent;
+}
+
+#user-message::-webkit-scrollbar-thumb:hover {
+    background-color: var(--dark-primary-hover);
+}
 .bot-message {
     background: rgba(255, 255, 255, 0.05);
     color: #e0e0e0;
@@ -197,6 +233,10 @@
     position: sticky;
     bottom: 0;
     z-index: 2;
+    align-items: flex-start;
+    min-height: 50px;
+    height: auto;
+    padding: var(--spacing-xs);
 }
 
 .input-group .form-control {
@@ -215,6 +255,9 @@
     padding: var(--spacing-sm) var(--spacing-md);
     border-radius: var(--radius-md);
     transition: all 0.3s ease;
+    min-height: 44px;
+    align-self: flex-end;
+    margin-bottom: var(--spacing-xs);
 }
 
 .input-group .btn-primary:hover {
