@@ -3,9 +3,9 @@ on:
   push:
     branches:
       - 'feature/**'
-      - 'bugfix/'
-      - 'fix'
-      - 'chore'
+      - 'bugfix/**'
+      - 'fix/**'
+      - 'chore/**'
 
 jobs:
   deploy:
@@ -14,7 +14,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }} #
+          ref: ${{ github.ref }}
+
 
       - name: Deploy feature commit to Digital Ocean
         uses: appleboy/ssh-action@v1.2.0
