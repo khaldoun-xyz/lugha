@@ -4,8 +4,8 @@ on:
     branches:
       - 'feature/**'
       - 'bugfix/'
-      - 'fix'
-      - 'chore'
+      - 'fix/'
+      - 'chore/'
 
 jobs:
   deploy:
